@@ -1,6 +1,6 @@
 namespace CuteCat.Core;
 
-public enum CatAction { Idle, Walk, Run, Groom, Sleep, Meow, Play, Drag, Land, Paw, Turn, Wake }
+public enum CatAction { Idle, Walk, Run, Groom, Sleep, Meow, Play, Drag, Land, Paw, Turn, Wake, Notice, Celebrate }
 
 // All values are continuous rig parameters; there are no frame indices or image assets.
 public readonly record struct CatPose(
@@ -8,7 +8,8 @@ public readonly record struct CatPose(
     double Tail, double Eyes, double Mouth, double Blush, double Reach,
     V2 HindFar, V2 ForeFar, V2 HindNear, V2 ForeNear,
     double BodyYaw=1, double HeadYaw=1, double TailYaw=1, V2? PawEnd=null,
-    double SleepPhase=0,double SleepBubble=0,double Anger=0,PetAccessory Accessory=PetAccessory.None,string AccessoryColor="Sage")
+    double SleepPhase=0,double SleepBubble=0,double Anger=0,PetAccessory Accessory=PetAccessory.None,string AccessoryColor="Sage",
+    double EarLeft=0,double EarRight=0,double Celebration=0)
 {
     public static CatPose Blend(CatPose a, CatPose b, double t) => new(
         Ease.Mix(a.Sit,b.Sit,t), Ease.Mix(a.Curl,b.Curl,t), Ease.Mix(a.Bob,b.Bob,t),
@@ -17,7 +18,7 @@ public readonly record struct CatPose(
         Ease.Mix(a.Blush,b.Blush,t), Ease.Mix(a.Reach,b.Reach,t), V2.Lerp(a.HindFar,b.HindFar,t),
         V2.Lerp(a.ForeFar,b.ForeFar,t), V2.Lerp(a.HindNear,b.HindNear,t), V2.Lerp(a.ForeNear,b.ForeNear,t),
         PawEnd:V2.Lerp(a.PawEnd??CatRig.Contact,b.PawEnd??CatRig.Contact,t),SleepPhase:b.SleepPhase,
-        SleepBubble:Ease.Mix(a.SleepBubble,b.SleepBubble,t));
+        SleepBubble:Ease.Mix(a.SleepBubble,b.SleepBubble,t),EarLeft:Ease.Mix(a.EarLeft,b.EarLeft,t),EarRight:Ease.Mix(a.EarRight,b.EarRight,t),Celebration:Ease.Mix(a.Celebration,b.Celebration,t));
 }
 
 public static class CatRig
@@ -41,6 +42,7 @@ public static class CatRig
         double blinkClock = time % 5.7;
         double eyes = 1 - Ease.Pulse(blinkClock, 4.8, .13);
         CatPose p = new(.12,0,b,0,0,0,Math.Sin(time*1.65)*.12,eyes,0,0,0,default,default,default,default);
+        if(!reduced)p=p with{EarLeft=-10*Ease.Pulse(time%9.3,7.1,.24),EarRight=8*Ease.Pulse(time%9.3,7.37,.26)};
         double w = phase * 2 * Math.PI;
         switch (action)
         {
@@ -67,7 +69,15 @@ public static class CatRig
                 double stretch=Ease.Pulse(age,.65,.65);
                 p=p with{Sit=.2,Curl=1-Ease.Smooth(age/.7),Stretch=.12*stretch,HeadTilt=-12*stretch,
                     HeadDrop=15*(1-Ease.Smooth(age/.7)),Eyes=.15+.85*Ease.Smooth(age/.9),
-                    ForeNear=new(17*stretch,-12*stretch),ForeFar=new(12*stretch,-8*stretch),Tail=.4*stretch};
+                    ForeNear=new(17*stretch,-12*stretch),ForeFar=new(12*stretch,-8*stretch),Tail=.4*stretch,Mouth=.95*stretch,Blush=.5};
+                break;
+            case CatAction.Notice:
+                p=p with{HeadTilt=-7*Ease.Smooth(age/.18),Eyes=1.16,EarLeft=-6,EarRight=5,Tail=.28};
+                break;
+            case CatAction.Celebrate:
+                double hop=Ease.Pulse(age,.68,.48),joy=Ease.Pulse(age,.8,.8);
+                p=p with{Bob=-18*hop,Stretch=.07*hop,HeadTilt=-8*joy,Eyes=.08,Mouth=.55*joy,Blush=1,Tail=.45,
+                    ForeNear=new(4*hop,-18*hop),ForeFar=new(0,-14*hop),HindNear=new(0,-8*hop),HindFar=new(0,-6*hop),Celebration=joy};
                 break;
             case CatAction.Meow:
                 double mew = Ease.Pulse(age%2.1,.78,.56);

@@ -1,6 +1,6 @@
 # Documentation map
 
-Current implementation: **0.7.0 preview, setup revision 0.7.0.1**. Start with [getting started](getting-started.md), [build status](build-status.md), and [focus companion/customization](18-focus-companion.md).
+Current implementation: **0.8.0 preview**. Start with [getting started](getting-started.md), [build status](build-status.md), and [profiles and reliability](19-profiles-and-reliability.md). The 0.7 handoff is historical evidence.
 
 The latest explicit user direction is a simple rounded, block-like cat drawn and animated entirely in code. This supersedes the previous hand-painted/sprite pipeline. The Azure image authorization remains available for future optional artwork; no endpoint or key is used by this build. Supplied images guide the degree of simplicity, not a contour or character to copy.
 
@@ -31,6 +31,7 @@ This checkout contained only documentation at task entry. Historical 0.2/0.3 imp
 | [UIAccess review](16-uiaccess-review.md) | Approved local installation, permission scope, Microsoft guidance and rollback |
 | [Windows installer](17-windows-installer.md) | Native wizard, Installed apps registration, migration, uninstall and certificate ownership |
 | [Focus companion](18-focus-companion.md) | Explicit app rules, normal paw close, idle behavior, accessories, menus and privacy |
+| [Profiles and reliability](19-profiles-and-reliability.md) | Profiles/schedules, allowances/exceptions, monitor manners, personality, protected signing, verified updates/recovery |
 | [Current handoff](handoff-2026-09-12-customization.md) | 0.7 implementation, executed checks, accessory correction and release |
 
 ## Actual scope

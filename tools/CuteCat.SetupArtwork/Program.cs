@@ -41,3 +41,16 @@ using(var sheet=new Bitmap(1120,1150))using(var g=Graphics.FromImage(sheet))
     }
     sheet.Save(Path.Combine(output,"accessory-placement.png"),ImageFormat.Png);
 }
+using(var sheet=new Bitmap(1080,500))using(var g=Graphics.FromImage(sheet))
+{
+    using var label=new Font("Segoe UI",14,FontStyle.Regular,GraphicsUnit.Pixel);
+    for(int row=0;row<2;row++)for(int col=0;col<4;col++)
+    {
+        using var background=new SolidBrush(ColorTranslator.FromHtml(row==0?"#F8F7F0":"#263C31"));g.FillRectangle(background,col*270,row*250,270,250);
+        CatAction action=new[]{CatAction.Idle,CatAction.Notice,CatAction.Wake,CatAction.Celebrate}[col];
+        var pose=CatRig.Evaluate(action,.7,.1,col==0?7.1:1) with{Accessory=row==0?PetAccessory.Flower:PetAccessory.Bandana,AccessoryColor="Rose",HeadYaw=col==1?.3:1};
+        painter.Draw(g,pose,.8f,col*270,row*250+25);
+        g.DrawString(new[]{"A tiny ear twitch","Something caught my eye","A sleepy yawn","A little celebration"}[col],label,row==0?Brushes.DarkSlateGray:Brushes.White,col*270+15,row*250+15);
+    }
+    sheet.Save(Path.Combine(output,"personality.png"),ImageFormat.Png);
+}

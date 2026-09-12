@@ -1,5 +1,5 @@
 {
-  "contractVersion": 4,
+  "contractVersion": 5,
   "characterRevision": 2,
   "character": "oat-cat-01",
   "renderer": "original-cubic-paths",
@@ -31,7 +31,9 @@
     "Land",
     "Paw",
     "Turn",
-    "Wake"
+    "Wake",
+    "Notice",
+    "Celebrate"
   ],
   "turn": {
     "seconds": 0.86,
@@ -64,6 +66,7 @@
     "paintTolerancePhysicalPixels": 1.5
   },
   "notificationJourney": {
+    "noticeSeconds": 0.22,
     "path": "cubic-eased-straight-line",
     "travelSeconds": [
       0.35,

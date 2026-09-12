@@ -206,8 +206,12 @@ foreach(double dpi in new[]{1,1.25,1.5,2})foreach(int size in new[]{96,128,160})
 Check("top caption close buttons are reachable at all supported sizes",topReach);
 File.WriteAllText(store.StatePath,"{\"Schema\":1,\"Settings\":{\"Nickname\":\"Kept\"}}");
 var upgradeStore=new StateStore(dir);var upgraded=upgradeStore.Load();
-Check("schema 1 upgrades without enabling app closing",upgraded.Schema==2&&upgraded.Settings.Nickname=="Kept"&&!upgraded.Settings.AppGuard&&upgraded.Settings.AppRules.Count==0&&File.Exists(store.StatePath+".schema1.json"));
-await upgradeStore.SaveAsync(upgraded with{Settings=upgraded.Settings with{Accessory=PetAccessory.Flower,AccessoryColor="Sky",AppRules=[rule]}});
+Check("schema 1 upgrades without enabling app closing",upgraded.Schema==3&&upgraded.Settings.Nickname=="Kept"&&!upgraded.Settings.AppGuard&&upgraded.Settings.AppRules.Count==0&&File.Exists(store.StatePath+".schema1.json"));
+await upgradeStore.SaveAsync(upgraded with{Settings=upgraded.Settings with{Accessory=PetAccessory.Flower,AccessoryColor="Sky",Profiles=upgraded.Settings.Profiles.Select(p=>p.Id=="work"?p with{Rules=[rule]}:p).ToList()}});
 var saved=upgradeStore.Load();Check("customizations and app rules survive restart",saved.Settings.Accessory==PetAccessory.Flower&&saved.Settings.AccessoryColor=="Sky"&&saved.Settings.AppRules.Single().Path==rule.Path);
+ProfileChecks.Run(Check);
+File.WriteAllText(store.StatePath,System.Text.Json.JsonSerializer.Serialize(new AppState{Schema=2,Settings=new Preferences{Nickname="Kept",AppGuard=true,AppRules=[rule]}}));
+var schema2=new StateStore(dir).Load();
+Check("schema 2 rules migrate only into Work with a preserved original",schema2.Schema==3&&schema2.Settings.Profiles.Single(p=>p.Id=="work").Rules.Count==1&&schema2.Settings.Profiles.Single(p=>p.Id=="study").Rules.Count==0&&schema2.Settings.AppGuard&&File.Exists(store.StatePath+".schema2.json"));
 Console.WriteLine($"\n{passed} passed; {failed} failed. Isolated fixtures: {dir}");
 Environment.ExitCode=failed==0?0:1;

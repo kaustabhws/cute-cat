@@ -7,7 +7,7 @@
           <Path Data="M 2,24 C 0,19 2,13 5,10 L 5,2 Q 6,-1 10,4 L 14,8 Q 20,6 24,8 L 30,2 Q 34,0 33,6 L 33,13 C 38,20 33,30 23,30 L 12,30 Q 3,29 2,24 Z" Fill="{DynamicResource AccentSoft}" Stroke="{DynamicResource Accent}" StrokeThickness="2" Width="34" Height="31" Stretch="Uniform" Margin="0,0,11,0"/>
           <TextBlock Text="cute cat" FontFamily="Georgia" FontSize="24" Foreground="{DynamicResource Ink}" VerticalAlignment="Center"/>
         </StackPanel>
-        <StackPanel x:Name="Navigation" Orientation="Horizontal" HorizontalAlignment="Right"/>
+        <WrapPanel x:Name="Navigation" Orientation="Horizontal" HorizontalAlignment="Right" Margin="20,0,0,0"/>
       </DockPanel>
     </Border>
     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><Grid x:Name="Page" Margin="36,29,36,24"/></ScrollViewer>

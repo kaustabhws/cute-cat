@@ -1,0 +1,43 @@
+# Profiles, allowances and release reliability — 0.8
+
+The user authorized all proposed improvements except browser integration, plus GitHub source and installer publication. They explicitly allowed desktop checks to be deferred in the RDP session and chose protected preview signing. Browser URLs/tabs remain deferred. No computer plugin is needed for this work.
+
+## Profiles and precedence
+
+Work, Study and Break are editable presets. Up to eight profiles have separate exact-executable app rules, activity levels, a guard participation switch and quiet-during-focus preference. Work inherits existing rules on migration; Study starts empty; Break's guard starts off. The global app guard remains unchanged and starts off for new users.
+
+Each profile can have a weekly local-time interval, Monday-first day mask, and priority 0–100. The start is inclusive and the end exclusive. An overnight interval belongs to its starting day. Equal endpoints cover that whole selected day. Higher priority wins overlaps; ties use profile order. Outside all intervals, the manually selected profile applies. Manual selection disables automatic schedules until explicitly re-enabled. Schedules follow the current Windows local clock, including DST; they do not replay missed intervals, start timers, or turn on the global guard. A profile change cancels pending actions and starts fresh grace.
+
+Rule eligibility remains global guard → profile guard → exact executable and scope → temporary pause. For eligible foreground windows, temporary app exceptions take precedence over remaining daily allowance, then the grace period. Exceptions last 5/15/30 minutes in the UI and can be revoked. They are shared across profiles by exact executable path. Grace is 0–60 seconds and daily allowance is 0–720 minutes; zero means no delay/allowance. A new window identity or return after foreground loss starts fresh grace. Every policy edit cancels pending paw work. Immediately before normal close, foreground identity, geometry, rule, epoch and current allowance decision are checked again.
+
+Usage is a local aggregate keyed by chosen executable path and local calendar day. It counts eligible foreground intervals for rules with a daily allowance, including temporary exceptions, while awake. It stops on lock, disconnect, sleep, hiding, reduced motion, guard pause or inactive rules. Sample gaps over five seconds are discarded; midnight starts a new day. Only 14 days of totals are kept. No window titles, URLs, text, key contents or activity timeline are saved. Clear allowance totals is available in Settings. An exception expires by UTC deadline; a daily allowance follows Windows' local day. These are voluntary boundaries, not tamper-proof limits.
+
+## Desktop manners and personality
+
+Deliberate dragging or Save this spot stores a normalized position per monitor. Switching monitors restores its saved spot; disconnected monitors fall back to the primary monitor without deleting their saved positions. Return to my spot and Park use animated travel. Display/scale changes cancel stale interventions.
+
+Settle while working uses elapsed input inactivity, never key contents. Optional focused-control avoidance starts off and explains its use of transient caret/small focused-control geometry. `GetGUIThreadInfo` and coordinate conversion supply only a rectangle. No control text, UIA content, capture or OCR is used. At most once every two seconds, an obstructing cat chooses the nearest safe resting corner. Unsupported geometry leaves it alone. User interaction and active paw work take precedence.
+
+The procedural rig adds subtle asymmetric ear twitches, a planted 0.22-second notice before running, a wake yawn, and a brief focus-completion celebration. The head leads into a continuous turn; the notice stays close to its shoulder. Ear flowers follow the ear hinge; neckwear stays behind the chin. Reduced motion removes bouncing and ear twitches. Runtime animation never loads exported diagnostic frames.
+
+## State and migration
+
+Schema 3 adds profiles, exceptions, monitor spots, desktop preferences, optional startup update checking, and bounded allowance totals. Schema 2 gets a separate `.schema2.json` backup before migration. Schema 1 and the older flat format retain their existing backups. Nickname, appearance, permissions, focus progress/history and user-selected rules are preserved. Future schemas remain read-only. Atomic JSON retains a previous-save backup. Profiles are authoritative; flat AppRules/Activity fields are compatibility mirrors for the selected profile.
+
+## Signing, updates and recovery
+
+The approved fallback is a reusable RSA preview identity with a nonexportable private key in the developer's Windows CNG key store, valid for three years. The key is never exported, copied into packages, or committed. `prepare-uiaccess-review.ps1` reuses that identity; an explicit `-CertificateThumbprint` can select an existing signing identity. `sign-artifact.ps1` signs SHA-256 and requires an RFC 3161 timestamp. The app, setup helper, installer and uninstaller are signed. Preparation adds no root trust. New preview trust still requires the install wizard's explicit acknowledgment; owned old certificate rotation and uninstall remain bounded.
+
+This is not a publicly verified publisher identity, HSM-backed signing, SmartScreen reputation, or a production UIAccess eligibility claim. Loss of the nonexportable key requires a separately reviewed publisher change. Public certificate/service enrollment remains external work. The certificate must remain valid for UIAccess, regardless of timestamped installer longevity.
+
+Updates use only the named GitHub repository. Checking at startup is off by default; there is also a manual Check button. A check fetches release metadata; downloading and installation require explicit UI actions. Metadata is untrusted: strict version, repository/asset URL, byte limit (250 MiB), declared size and SHA-256 are enforced. Authenticode must validate with Windows and its signing public key must match the running signed app. Validation repeats under a file handle denying writes/deletes before launching setup. No update code automatically adds certificate trust. Unsigned/different-publisher/malformed downloads are rejected. A standard unsigned development app cannot install through this verified channel.
+
+Setup caches its verified installer under the protected Program Files `Recovery` directory. It retains the installed version plus one other compatible signed version. Older cached versions appear in Updates & recovery, where the user can open their setup. Repair can also run directly from that folder if the app will not start. Rollback preserves user data and relies on schema read-only handling when needed. This is installer-based recovery, not an automatic crash-triggered rollback or a backup of arbitrary user documents. **0.8 establishes the baseline: the earlier unsigned 0.7 setup cannot be offered as verified rollback.** Uninstall removes owned cached installers as well as the application.
+
+Recovery verification happens before payload replacement. Installer version resources are trimmed because Inno pads them. Aborted setup removes newly added cached installers/trust; a post-install completion failure returns a nonzero custom exit. `scripts/test-installer.ps1 -Install -UninstallReinstall -AcceptPreviewTrust` explicitly exercises installation, signature rejection, Installed apps, recovery and uninstall/reinstall. Without these mutation switches it only inspects an existing installation. Use an authorized test machine; the script keeps reports in ignored artifacts and preserves user data.
+
+## Verification and next desktop checks
+
+Deterministic checks cover schedule boundaries/overlaps/manual precedence, exception/grace precedence, usage gaps/midnight/retention, migration, monitor geometry, notice continuity and malformed update metadata. Native test-owned windows cover allowance delay, grace, cancelling an approach with an exception or Break, resumption, normal close and save refusal. See build status for the exact executed counts and package results.
+
+GitHub Actions builds and runs core checks on Windows Server 2022 and 2025, plus controlled app-policy fixtures and procedural art export. Server CI does not establish Windows 11 toast compatibility. Remaining interactive matrix: focused-control avoidance in real editors, monitor hotplug/mixed DPI, RDP disconnect/reconnect, standard-user UIAccess, live Windows 11 banners, accessibility and future-version rollback. Do not claim these are measured solely because the adapters compile or synthetic tests pass.

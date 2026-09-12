@@ -13,6 +13,12 @@ public partial class App : Application
         base.OnStartup(e);
         if(StandardUserProcess.Relaunch(e.Args,out int childExit)){Shutdown(childExit);return;}
         string? Arg(string flag) { int n=Array.IndexOf(e.Args,flag);return n>=0&&n+1<e.Args.Length?e.Args[n+1]:null; }
+        if(Arg("--verify-installer") is string installer)
+        {
+            bool verified=InstallerSignature.SamePublisher(installer,Arg("--publisher-file")??Environment.ProcessPath!,Arg("--expected-version")??BuildInfo.Version);
+            if(Arg("--verification-output") is string output)File.WriteAllText(output,System.Text.Json.JsonSerializer.Serialize(new{verified}));
+            Shutdown(verified?0:1);return;
+        }
         if(Arg("--art-preview") is string artPreview)
         {
             QualityChecks.ExportArt(Path.GetFullPath(artPreview));Shutdown();return;
@@ -38,7 +44,8 @@ public partial class App : Application
             if(!e.Args.Contains("--tray") && benchmark is null && shellCheck is null)main.Show();
             if(qa is not null)
             {
-                if(e.Args.Contains("--features-only"))await QualityChecks.Features(_host,main,Path.GetFullPath(qa),Arg("--app-fixture")!);
+                if(e.Args.Contains("--policy-checks"))await QualityChecks.Policies(_host,Path.GetFullPath(qa),Arg("--app-fixture")!);
+                else if(e.Args.Contains("--features-only"))await QualityChecks.Features(_host,main,Path.GetFullPath(qa),Arg("--app-fixture")!);
                 else await QualityChecks.Run(_host,main,Path.GetFullPath(qa),Arg("--app-fixture"));
                 Shutdown(QualityChecks.Failed?1:0);
             }

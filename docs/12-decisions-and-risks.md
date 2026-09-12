@@ -1,5 +1,11 @@
 # Decisions and risks
 
+## D27 — 0.8 profile and reliability scope (12 September 2026)
+
+The user authorized profiles, per-app exceptions/allowances, desktop awareness, personality and release hardening, excluding browser integration. They explicitly permitted deferred live testing under RDP, requested GitHub source/release publication, and selected protected preview signing. Contract: [19-profiles-and-reliability.md](19-profiles-and-reliability.md).
+
+Schema 3 uses bounded JSON aggregates, no browsing timeline. Manual profile selection pauses scheduling. Focused-control avoidance is optional and geometry-only. Signing uses a reusable nonexportable CNG key, not an exported PFX or publicly verified publisher. Updater accepts only same-publisher signed installers and offers installer-based repair/rollback. 0.8 establishes the recovery baseline; 0.7's unsigned installer is excluded. Future-version rollback, real editor/multi-monitor behavior and standard-user UIAccess remain separate desktop gates.
+
 | ID | Decision | Status / reason |
 | --- | --- | --- |
 | D01 | Soft hand-painted 2D | Historical; superseded by explicit code-only direction D21 on 12 September |

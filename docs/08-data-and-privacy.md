@@ -1,5 +1,7 @@
 # Data, privacy, and trust boundaries
 
+**0.8 current inventory:** profile rules/schedules and normalized monitor spots are local configuration. Per-app exceptions store chosen executable plus UTC expiry. Daily allowance aggregates store only chosen executable, local day and seconds, retained for 14 days. Optional focused-control avoidance observes transient geometry only and starts off. Optional GitHub update checks/downloads send ordinary HTTP metadata to GitHub; no settings, usage or browsing data is uploaded. Startup checking starts off. See [the current contract](19-profiles-and-reliability.md). Browser data sections below remain future specifications.
+
 Local-first is a product behavior, not a marketing substitute for data accounting. The desktop app has no need for a login, image-generation key, screen capture, page-content upload, or typing history.
 
 ## Data inventory

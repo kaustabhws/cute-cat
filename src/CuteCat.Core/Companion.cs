@@ -36,6 +36,8 @@ public sealed class Companion
     private bool _urgent;
     private V2 _tripStart, _pawEnd=CatRig.Contact;
     private double _tripElapsed,_tripSeconds,_strideScale=1;
+    private double _lookFrom;
+    private double _lookTo=1;
 
     public Companion(Area area, double scale=1)
     {
@@ -75,8 +77,10 @@ public sealed class Companion
         }
         SetAction(action,now);
         _next=now+(action switch { CatAction.Groom=>5.8,CatAction.Sleep=>double.PositiveInfinity,CatAction.Wake=>1.4,CatAction.Play=>3,
-            CatAction.Meow=>1.1,CatAction.Land=>.55,CatAction.Paw=>1.3,CatAction.Drag=>double.PositiveInfinity,_=>5 });
+            CatAction.Meow=>1.1,CatAction.Land=>.55,CatAction.Paw=>1.3,CatAction.Celebrate=>1.8,CatAction.Notice=>double.PositiveInfinity,CatAction.Drag=>double.PositiveInfinity,_=>5 });
     }
+    public void Notice(int direction,double now)
+    {Perform(CatAction.Notice,now);_lookFrom=_turn.Current.Head;int target=direction<0?-1:1;_lookTo=target==Facing?target:Facing*.3;}
 
     public void MoveTo(V2 position, double now, bool dragging=false)
     {
@@ -162,6 +166,7 @@ public sealed class Companion
         var targetPose=CatRig.Evaluate(Action,Action==CatAction.Turn?_turn.AnimationAge(now):ActionAge,Phase,now,ReducedMotion,_strideScale) with{PawEnd=_pawEnd};
         if(_holdPaw)targetPose=targetPose with{Reach=1};
         _anger=Ease.Mix(_anger,Angry?1:0,1-Math.Exp(-12*dt));
+        if(Action==CatAction.Notice)_turn.Look(Ease.Mix(_lookFrom,_lookTo,Ease.Smooth(ActionAge/.22)));
         var orientation=_turn.Current;
         Pose=CatPose.Blend(_blendFrom,targetPose,Ease.Smooth((now-_blendAt)/.32)) with
         { BodyYaw=orientation.Body,HeadYaw=orientation.Head,TailYaw=orientation.Tail,Anger=_anger,Accessory=Accessory,AccessoryColor=AccessoryColor };

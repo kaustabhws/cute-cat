@@ -42,5 +42,6 @@ public sealed class TurnTransition
 
     // Interrupted turns keep their actual orientation. No hidden mirror or delayed completion.
     public void Cancel() => Active = false;
+    public void Look(double head)=>Current=Current with{Head=Math.Clamp(head,-1,1)};
     public double AnimationAge(double now)=>Math.Max(0,now-_started)*Duration/_duration;
 }

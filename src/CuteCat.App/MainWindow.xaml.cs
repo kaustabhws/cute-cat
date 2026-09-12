@@ -18,10 +18,14 @@ public partial class MainWindow : Window
     private int _minutes=25;
     private double _lastPreview;
     private string _current="Focus";
+    private string _displayProfile="";
+    private readonly Dictionary<string,TextBlock> _usageLabels=[];
     public MainWindow(CompanionHost host)
     {
         InitializeComponent();_host=host;
-        foreach(string name in new[]{"Focus","Your cat","App guard","Quiet desktop","Settings"})
+        _updates.Changed+=()=>_updateRefresh?.Invoke();
+        if(host.Settings.CheckUpdatesAutomatically&&!host.IsTest)_=_updates.Check();
+        foreach(string name in new[]{"Focus","Profiles","Your cat","App guard","Quiet desktop","Settings"})
         {var button=Button(name,()=>Navigate(name));button.MinHeight=34;button.Padding=new Thickness(13,7,13,7);button.Margin=new Thickness(4,0,0,0);button.BorderThickness=new Thickness(0);Navigation.Children.Add(button);_tabs[name]=button;}
         SetTheme(_host.Settings.Theme);Navigate("Focus");
         host.Frame+=UpdatePreview;host.Changed+=Refresh;
@@ -34,14 +38,14 @@ public partial class MainWindow : Window
     {
         if(_preview.Parent is Panel old)old.Children.Remove(_preview);
         if(_preview.Parent is Border border)border.Child=null;
-        _current=name;Page.Children.Clear();Page.ColumnDefinitions.Clear();Page.RowDefinitions.Clear();
+        _current=name;_updateRefresh=null;_displayProfile=_host.CurrentProfile.Id;_usageLabels.Clear();Page.Children.Clear();Page.ColumnDefinitions.Clear();Page.RowDefinitions.Clear();
         _timer=null;_sessionLabel=null;_summary=null;_notificationLabel=null;_primary=null;_end=null;_catLabel=null;_testLabel=null;_guardLabel=null;
         foreach(var (key,button) in _tabs)button.SetResourceReference(BackgroundProperty,key==name?"AccentSoft":"Paper");
-        switch(name){case "Focus":FocusPage();break;case "Your cat":CatPage();break;case "App guard":AppsPage();break;case "Quiet desktop":NotificationsPage();break;default:SettingsPage();break;}
+        switch(name){case "Focus":FocusPage();break;case "Profiles":ProfilesPage();break;case "Your cat":CatPage();break;case "App guard":AppsPage();break;case "Quiet desktop":NotificationsPage();break;case "Updates":UpdatesPage();break;default:SettingsPage();break;}
         Refresh();_lastPreview=0;UpdatePreview(FrameClock.Now);
     }
     private static TextBlock Text(string text,double size=14,string color="Ink",double bottom=0)
-    {var t=new TextBlock{Text=text,FontSize=size,Margin=new Thickness(0,0,0,bottom)};t.SetResourceReference(TextBlock.ForegroundProperty,color);return t;}
+    {var t=new TextBlock{Text=text,FontSize=size,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,bottom)};t.SetResourceReference(TextBlock.ForegroundProperty,color);return t;}
     private static new TextBlock Title(string text) {var t=Text(text,31,"Ink",13);t.FontFamily=new FontFamily("Georgia");t.LineHeight=38;return t;}
     private static TextBlock Eyebrow(string text)=>Text(text.ToUpperInvariant(),10,"Muted",15);
     private static Button Button(string label,Action action,bool primary=false)
@@ -96,6 +100,7 @@ public partial class MainWindow : Window
         right.Children.Add(Text("Pet to say hello. Drag to move. Your cat rests during focus, and wanders when you're ready for a break.",13,"Muted",12));
         right.Children.Add(Text("Choose distracting desktop apps in App guard. Browser URL rules will come later.",11,"Muted"));
         right.Children.Add(Button("Choose distracting apps",()=>Navigate("App guard")));
+        right.Children.Add(Button("Profile · "+_host.CurrentProfile.Name,()=>Navigate("Profiles")));
     }
     private void CatPage()
     {
@@ -113,7 +118,7 @@ public partial class MainWindow : Window
         right.Children.Add(Choice("Pet accessory",new[]{(PetAccessory.None,"Just my cat"),(PetAccessory.Bandana,"Soft bandana"),(PetAccessory.BowTie,"Little bow tie"),(PetAccessory.BellCollar,"Bell collar"),(PetAccessory.Flower,"Daisy bloom")},_host.Settings.Accessory,v=>_host.Update(_host.Settings with{Accessory=v})));
         right.Children.Add(Choice("Accessory colour",new[]{("Sage","Sage green"),("Rose","Dusty rose"),("Sky","Cloud blue"),("Plum","Soft lavender"),("Honey","Warm honey")},_host.Settings.AccessoryColor,v=>_host.Update(_host.Settings with{AccessoryColor=v})));
         left.Children.Add(Text("Personality",12,"Muted",8));
-        left.Children.Add(Choice("Cat activity",new[]{(ActivityLevel.Calm,"Calm · more grooming, gentle walks"),(ActivityLevel.Balanced,"Curious · a little of everything"),(ActivityLevel.Playful,"Playful · more runs and little hops")},_host.Settings.Activity,v=>_host.Update(_host.Settings with{Activity=v})));
+        left.Children.Add(Choice("Cat activity",new[]{(ActivityLevel.Calm,"Calm · more grooming, gentle walks"),(ActivityLevel.Balanced,"Curious · a little of everything"),(ActivityLevel.Playful,"Playful · more runs and little hops")},_host.CurrentProfile.Activity,v=>_host.EditProfile(_displayProfile,p=>p with{Activity=v})));
         left.Children.Add(Check("Nap when I'm away",_host.Settings.IdleNaps,v=>_host.Update(_host.Settings with{IdleNaps=v})));
         left.Children.Add(Choice("Idle time before napping",new[]{(1,"After 1 minute idle"),(3,"After 3 minutes idle"),(5,"After 5 minutes idle"),(10,"After 10 minutes idle"),(15,"After 15 minutes idle")},_host.Settings.IdleMinutes,v=>_host.Update(_host.Settings with{IdleMinutes=v})));
         left.Children.Add(Text("Your cat curls up with a tiny nose bubble, then stretches awake when you return. Focus mode and quiet company keep activity gentle.",12,"Muted",12));
@@ -137,24 +142,31 @@ public partial class MainWindow : Window
         var stack=new StackPanel();Page.Children.Add(stack);
         stack.Children.Add(Eyebrow("A focus buddy with small paws"));stack.Children.Add(Title("Less temptation. More focus."));
         stack.Children.Add(Text("Choose the desktop apps that pull you away. Your cat can give a stern little reminder, or run over and tap the window's close button.",14,"Muted",12));
+        string profileId=_host.CurrentProfile.Id;
+        stack.Children.Add(Text("Rules for "+_host.CurrentProfile.Name+" · change profiles from the Profiles page",12,"Muted",12));
         stack.Children.Add(Check("Enable app guard",_host.Settings.AppGuard,v=>_host.Update(_host.Settings with{AppGuard=v})));
         _guardLabel=Text(_host.AppGuardStatus,12,"Muted",14);stack.Children.Add(_guardLabel);
         stack.Children.Add(Row(Button("Add an app",AddAppRule,true),Button("Pause for 10 minutes",()=>_host.PauseGuard(10)),Button("Resume",()=>_host.PauseGuard(0))));
-        if(_host.Settings.AppRules.Count==0)
+        if(_host.CurrentProfile.Rules.Count==0)
             stack.Children.Add(Text("No apps selected yet. Add a desktop app, choose how your cat responds, then enable app guard.",14,"Muted",20));
-        foreach(var rule in _host.Settings.AppRules)
+        foreach(var rule in _host.CurrentProfile.Rules)
         {
             var content=new StackPanel{Margin=new Thickness(16)};
-            var header=new DockPanel();var remove=Button("Remove",()=>{_host.Update(_host.Settings with{AppRules=_host.Settings.AppRules.Where(r=>r.Path!=rule.Path).ToList()});Navigate("App guard");});
+            var header=new DockPanel();var remove=Button("Remove",()=>{_host.EditProfile(profileId,p=>p with{Rules=p.Rules.Where(r=>r.Path!=rule.Path).ToList()});Navigate("App guard");});
             remove.MinHeight=30;remove.Padding=new Thickness(10,4,10,4);DockPanel.SetDock(remove,Dock.Right);header.Children.Add(remove);
             var title=Text(rule.Name,16);title.FontWeight=FontWeights.SemiBold;header.Children.Add(title);content.Children.Add(header);
             content.Children.Add(Text(rule.Path,11,"Muted",8));
-            void Change(Func<AppRule,AppRule> update)=>_host.Update(_host.Settings with{AppRules=_host.Settings.AppRules.Select(r=>r.Path==rule.Path?update(r):r).ToList()});
+            void Change(Func<AppRule,AppRule> update)=>_host.EditProfile(profileId,p=>p with{Rules=p.Rules.Select(r=>r.Path==rule.Path?update(r):r).ToList()});
             content.Children.Add(Check("Protect against this app",rule.Enabled,v=>Change(r=>r with{Enabled=v})));
             var row=new Grid();row.ColumnDefinitions.Add(new());row.ColumnDefinitions.Add(new(){Width=new GridLength(14)});row.ColumnDefinitions.Add(new());
             var action=Choice("Response for "+rule.Name,new[]{(AppRuleAction.CloseWindow,"Angry paw · close the window"),(AppRuleAction.Remind,"Gentle reminder · leave it open")},rule.Action,v=>Change(r=>r with{Action=v}));
             var scope=Choice("When to protect against "+rule.Name,new[]{(AppRuleScope.Always,"Whenever app guard is on"),(AppRuleScope.DuringFocus,"Only during a focus session")},rule.Scope,v=>Change(r=>r with{Scope=v}));
             row.Children.Add(action);Grid.SetColumn(scope,2);row.Children.Add(scope);content.Children.Add(row);
+            var delay=NumberInput("Grace before responding · seconds",rule.CloseDelaySeconds,0,60,v=>Change(r=>r with{CloseDelaySeconds=v}));
+            var allowance=NumberInput("Daily allowance · minutes (0 = none)",rule.DailyAllowanceMinutes,0,720,v=>Change(r=>r with{DailyAllowanceMinutes=v}));
+            content.Children.Add(Row(delay,allowance));
+            var usage=Text("",12,"Muted",10);_usageLabels[rule.Path]=usage;content.Children.Add(usage);
+            content.Children.Add(Row(Button("Allow 5 min",()=>_host.AllowApp(rule.Path,5)),Button("Allow 15 min",()=>_host.AllowApp(rule.Path,15)),Button("Allow 30 min",()=>_host.AllowApp(rule.Path,30)),Button("End exception",()=>_host.AllowApp(rule.Path,0))));
             var card=new Border{CornerRadius=new CornerRadius(14),Child=content,Margin=new Thickness(0,0,0,12),BorderThickness=new Thickness(1)};
             card.SetResourceReference(Border.BackgroundProperty,"Panel");card.SetResourceReference(Border.BorderBrushProperty,"Line");stack.Children.Add(card);
         }
@@ -163,6 +175,7 @@ public partial class MainWindow : Window
     }
     private async void AddAppRule()
     {
+        string profileId=_host.CurrentProfile.Id;
         var apps=await Task.Run(DesktopApps.OpenApps);
         var dialog=new Window{Owner=this,Title="Choose a distracting app",Width=510,Height=350,ResizeMode=ResizeMode.NoResize,WindowStartupLocation=WindowStartupLocation.CenterOwner};
         var content=new StackPanel{Margin=new Thickness(24)};dialog.Content=content;
@@ -180,7 +193,7 @@ public partial class MainWindow : Window
         }),Button("Add app",()=>
         {
             if(chosen is null){detail.Text="Choose an app first.";return;}
-            _host.Update(_host.Settings with{AppRules=_host.Settings.AppRules.Where(r=>!string.Equals(r.Path,chosen.Path,StringComparison.OrdinalIgnoreCase)).Append(new AppRule(chosen.Path,chosen.Name)).ToList()});
+            _host.EditProfile(profileId,p=>p with{Rules=p.Rules.Where(r=>!string.Equals(r.Path,chosen.Path,StringComparison.OrdinalIgnoreCase)).Append(new AppRule(chosen.Path,chosen.Name)).ToList()});
             dialog.DialogResult=true;
         },true)));
         dialog.ShowDialog();Navigate("App guard");
@@ -194,8 +207,13 @@ public partial class MainWindow : Window
         left.Children.Add(Text("Your cat's monitor",12,"Muted",8));
         var monitor=new ComboBox();foreach(var screen in Forms.Screen.AllScreens)monitor.Items.Add(screen.DeviceName);
         monitor.SelectedItem=Forms.Screen.AllScreens.FirstOrDefault(s=>s.DeviceName==_host.Settings.Monitor)?.DeviceName??Forms.Screen.PrimaryScreen?.DeviceName;
-        System.Windows.Automation.AutomationProperties.SetName(monitor,"Cat monitor");monitor.SelectionChanged+=(_,_)=>{if(monitor.SelectedItem is string device){_host.Update(_host.Settings with{Monitor=device});_host.Park();}};
+        System.Windows.Automation.AutomationProperties.SetName(monitor,"Cat monitor");monitor.SelectionChanged+=(_,_)=>{if(monitor.SelectedItem is string device)_host.Update(_host.Settings with{Monitor=device});};
         left.Children.Add(monitor);
+        left.Children.Add(Check("Remember a spot on each monitor",_host.Settings.RememberRestingSpots,v=>_host.Update(_host.Settings with{RememberRestingSpots=v})));
+        left.Children.Add(Row(Button("Save this spot",_host.RememberSpot),Button("Return to my spot",_host.ReturnToSpot)));
+        left.Children.Add(Check("Settle while I'm working",_host.Settings.SettleWhileWorking,v=>_host.Update(_host.Settings with{SettleWhileWorking=v})));
+        left.Children.Add(Check("Move away from focused controls",_host.Settings.AvoidFocusedControls,v=>_host.Update(_host.Settings with{AvoidFocusedControls=v})));
+        left.Children.Add(Text("Uses the position of a caret or small focused control to move aside. Its text is never read or saved. Dragging your cat saves a resting spot on this monitor.",12,"Muted",12));
         left.Children.Add(Check("Reduce motion",_host.Settings.ReducedMotion,v=>_host.Update(_host.Settings with{ReducedMotion=v})));
         left.Children.Add(Check("Follow Windows animation preference",_host.Settings.FollowWindowsMotion,v=>_host.Update(_host.Settings with{FollowWindowsMotion=v})));
         left.Children.Add(Check("Quiet meow sounds",_host.Settings.Sounds,v=>_host.Update(_host.Settings with{Sounds=v})));
@@ -203,6 +221,9 @@ public partial class MainWindow : Window
         right.Children.Add(Eyebrow("A small app, a local home"));
         right.Children.Add(Text("No account. No subscription.",20,"Ink",12));right.Children.Add(Text("Your settings and recent focus sessions stay in your Windows profile. There is no cloud service or image generator running behind your cat.",14,"Muted",22));
         right.Children.Add(Text("Cute Cat · "+BuildInfo.Version,13,"Ink",8));right.Children.Add(Text("Original vector artwork and continuous animation. Native Windows controls. Completely free.",13,"Muted",20));
+        right.Children.Add(Button("Updates & recovery",()=>Navigate("Updates")));
+        right.Children.Add(Button("Clear app allowance totals",()=>{_host.ClearUsage();Refresh();}));
+        right.Children.Add(Text("Daily totals cover only selected apps with an allowance while their guard is active. They stay here for 14 days; no window titles or activity timeline are stored.",12,"Muted",12));
         right.Children.Add(Button("Clear focus history",()=>
         {if(MessageBox.Show(this,"Clear the focus history stored by Cute Cat? Your cat settings will stay.","Clear focus history",MessageBoxButton.OKCancel,MessageBoxImage.Question)==MessageBoxResult.OK){_host.History.Clear();_host.Save();Refresh();}}));
         right.Children.Add(Text("Closing this window keeps your cat in the notification area. Use Quit to send it home.",12,"Muted",16));
@@ -238,6 +259,12 @@ public partial class MainWindow : Window
     public void Refresh()
     {
         if(!IsVisible)return;
+        if(_displayProfile!=_host.CurrentProfile.Id&&_current is "App guard" or "Profiles" or "Your cat" or "Focus"){Navigate(_current);return;}
+        foreach(var pair in _usageLabels)
+        {
+            var exception=_host.Settings.AppExceptions.FirstOrDefault(e=>string.Equals(e.Path,pair.Key,StringComparison.OrdinalIgnoreCase)&&e.Until>DateTimeOffset.UtcNow);
+            pair.Value.Text=$"{_host.UsedToday(pair.Key)/60:0.#} min counted today"+(exception is null?" · no temporary exception":$" · allowed until {exception.Until.LocalDateTime:t}");
+        }
         var session=_host.Session;
         if(_timer is not null)
         {
@@ -262,7 +289,7 @@ public partial class MainWindow : Window
             _=>"Windows did not show the test. Check that notifications for Cute Cat are allowed."
         };
         if(_catLabel is not null)_catLabel.Text=_host.Cat.Hidden?"Your cat is resting out of sight.":_host.Cat.Action switch{CatAction.Walk=>"A little wander around the desk.",CatAction.Run=>"Somewhere very important to be.",CatAction.Groom=>"Keeping those little paws tidy.",CatAction.Sleep=>"Shh. A very small nap.",CatAction.Meow=>"A tiny hello, just for you.",CatAction.Play=>"A little spring in those paws.",_=>"Breathing, blinking, and being a cat."};
-        Footer.Text=_host.SaveNotice??(_host.Cat.Hidden?"Cat hidden · timer stays with you":(_host.Brain.AutoSleeping?"Taking a little nap":"Companion here")+" · "+(_host.Settings.AppGuard?"app guard on":"app guard off")+" · "+(_host.Settings.Notifications?"notification paws on":"notification paws off"));
+        Footer.Text=_host.SaveNotice??(_host.CurrentProfile.Name+(_host.Settings.AutomaticProfiles?" · scheduled":"")+" · "+(_host.Cat.Hidden?"cat hidden":_host.Brain.AutoSleeping?"napping":_host.Settings.AppGuard&&_host.CurrentProfile.GuardEnabled?"app guard on":"companion here"));
     }
     private void UpdatePreview(double now)
     {

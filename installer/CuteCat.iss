@@ -40,6 +40,9 @@ OutputDir=..\dist\installer
 OutputBaseFilename=CuteCat-{#AppVersion}-Setup
 VersionInfoVersion={#SetupVersion}
 VersionInfoProductVersion={#SetupVersion}
+VersionInfoProductName=Cute Cat
+SignTool=CuteCatSign
+SignedUninstaller=yes
 Compression=lzma2/normal
 SolidCompression=yes
 SetupLogging=yes
@@ -59,6 +62,7 @@ Name: desktopicon; Description: "Create a desktop shortcut"; GroupDescription: "
 [Dirs]
 Name: "{app}"; Flags: uninsalwaysuninstall
 Name: "{app}\licenses"; Flags: uninsalwaysuninstall
+Name: "{app}\Recovery"; Flags: uninsalwaysuninstall
 #include "generated\Directories.iss"
 
 [Files]
@@ -83,7 +87,7 @@ Type: files; Name: "{app}\setup-state.ini"
 [Code]
 var
   AccessPage: TInputOptionWizardPage;
-  AlreadyTrusted, AddedTrustThisRun, InstallationComplete: Boolean;
+  AlreadyTrusted, AddedTrustThisRun, AddedCacheThisRun, InstallationAttempted, InstallationComplete: Boolean;
 
 function Q(const Value: String): String;
 begin
@@ -181,14 +185,20 @@ begin
     Exit;
   end;
   AddedTrustThisRun := AddedTrustThisRun or (Code = 10);
+  if not RunSupport('cache ' + Q(ExpandConstant('{app}')) + ' ' + Q(ExpandConstant('{srcexe}')), Code) or ((Code <> 0) and (Code <> 10)) then begin
+    Result := 'Setup could not verify or save its recovery installer. Installed program files have not been replaced.';
+    Exit;
+  end;
+  AddedCacheThisRun := AddedCacheThisRun or (Code = 10);
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
 var Code: Integer; Owned: String;
 begin
+  if CurStep = ssInstall then InstallationAttempted := True;
   if CurStep = ssPostInstall then begin
     if AddedTrustThisRun then Owned := '1' else Owned := '0';
-    if not RunSupport('complete ' + Q(ExpandConstant('{app}')) + ' ' + Owned, Code) or (Code <> 0) then
+    if not RunSupport('complete ' + Q(ExpandConstant('{app}')) + ' ' + Owned + ' ' + Q(ExpandConstant('{srcexe}')), Code) or (Code <> 0) then
       RaiseException('Cute Cat could not finish installation safely. Your personal data has not been removed.');
     InstallationComplete := True;
   end;
@@ -197,8 +207,16 @@ end;
 procedure DeinitializeSetup;
 var Code: Integer;
 begin
+  if AddedCacheThisRun and not InstallationComplete then
+    RunSupport('undo-cache ' + Q(ExpandConstant('{app}')), Code);
   if AddedTrustThisRun and not InstallationComplete then
     RunSupport('undo-trust', Code);
+end;
+
+function GetCustomSetupExitCode: Integer;
+begin
+  Result := 0;
+  if InstallationAttempted and not InstallationComplete then Result := 20;
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);

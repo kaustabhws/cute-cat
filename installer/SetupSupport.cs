@@ -46,6 +46,14 @@ internal static class SetupSupport
             if(args[0]=="undo-trust"){RemoveTrust();return 0;}
             string directory=SafeDirectory(args[1]);
             if(args[0]=="close")return CloseOwnApp(directory)?0:Running;
+            if(args[0]=="cache")return CacheInstaller(directory,args[2])?10:0;
+            if(args[0]=="undo-cache")
+            {
+                string recovery=RecoveryDirectory(directory),file=Path.Combine(recovery,"CuteCat-"+SetupBuild.Version+"-Setup.exe");
+                if(File.Exists(file)&&SignedInstaller(file,SetupBuild.Version))File.Delete(file);
+                if(Directory.Exists(recovery)&&Directory.GetFileSystemEntries(recovery).Length==0)Directory.Delete(recovery);
+                return 0;
+            }
             if(args[0]=="complete")
             {
                 VerifyExecutable(directory);
@@ -69,6 +77,7 @@ internal static class SetupSupport
                 WriteIni(directory,"Thumbprint",SetupBuild.CertificateThumbprint);
                 WriteIni(directory,"Product","Cute Cat");
                 WriteIni(directory,"Path",directory);
+                PruneRecovery(directory);
                 if(priorOwned&&priorThumb!=SetupBuild.CertificateThumbprint&&Array.IndexOf(SetupBuild.RetiredCertificates,priorThumb)>=0)RemoveTrust(priorThumb);
                 RemoveMatchingUserShortcut(directory);
                 // These two files belong exclusively to the preceding reviewed manual install.
@@ -85,6 +94,7 @@ internal static class SetupSupport
             if(args[0]=="uninstall")
             {
                 if(!CloseOwnApp(directory))return Running;
+                RemoveRecovery(directory);
                 RemoveStartupEntries(directory);
                 RemoveMatchingUserShortcut(directory);
                 // Missing/corrupt optional metadata must not prevent program removal.
@@ -156,6 +166,75 @@ internal static class SetupSupport
         var value=new StringBuilder(2048);
         GetPrivateProfileString("CuteCatSetup",key,"",value,value.Capacity,Path.Combine(directory,"setup-state.ini"));return value.ToString();
     }
+    private static string RecoveryDirectory(string directory)
+    {
+        string recovery=Path.Combine(SafeDirectory(directory),"Recovery");
+        if(Directory.Exists(recovery)&&(File.GetAttributes(recovery)&FileAttributes.ReparsePoint)!=0)throw new InvalidDataException();
+        return recovery;
+    }
+    private static bool CacheInstaller(string directory,string source)
+    {
+        string recovery=RecoveryDirectory(directory);Directory.CreateDirectory(recovery);SecureDirectory(recovery);
+        string destination=Path.Combine(recovery,"CuteCat-"+SetupBuild.Version+"-Setup.exe");
+        bool added=!File.Exists(destination);
+        using(var input=File.Open(source,FileMode.Open,FileAccess.Read,FileShare.Read))
+        {
+            if(!SignedInstaller(source,SetupBuild.Version))throw new InvalidDataException();
+            if(!string.Equals(Path.GetFullPath(source),destination,StringComparison.OrdinalIgnoreCase))
+            {
+                string temp=Path.Combine(recovery,"pending-setup.exe");
+                if(File.Exists(temp)&&(File.GetAttributes(temp)&FileAttributes.ReparsePoint)!=0)throw new InvalidDataException();
+                using(var output=File.Open(temp,FileMode.Create,FileAccess.Write,FileShare.None))input.CopyTo(output);
+                if(!SignedInstaller(temp,SetupBuild.Version))throw new InvalidDataException();
+                if(File.Exists(destination))File.Delete(destination);
+                File.Move(temp,destination);
+            }
+        }
+        return added;
+    }
+    private static void PruneRecovery(string directory)
+    {
+        string recovery=RecoveryDirectory(directory),destination=Path.Combine(recovery,"CuteCat-"+SetupBuild.Version+"-Setup.exe");
+        var candidates=new List<string>();
+        foreach(string file in Directory.GetFiles(recovery,"CuteCat-*-Setup.exe"))
+            if(SignedInstaller(file,null))candidates.Add(file);
+        candidates.Sort(delegate(string a,string b){return Version.Parse(FileVersionInfo.GetVersionInfo(b).ProductVersion.Trim()).CompareTo(Version.Parse(FileVersionInfo.GetVersionInfo(a).ProductVersion.Trim()));});
+        int other=0;
+        foreach(string file in candidates)if(!string.Equals(file,destination,StringComparison.OrdinalIgnoreCase)&&++other>1)File.Delete(file);
+    }
+    private static void RemoveRecovery(string directory)
+    {
+        string recovery=RecoveryDirectory(directory);if(!Directory.Exists(recovery))return;
+        foreach(string file in Directory.GetFiles(recovery,"CuteCat-*-Setup.exe"))
+            if((File.GetAttributes(file)&FileAttributes.ReparsePoint)==0&&SignedInstaller(file,null))File.Delete(file);
+        if(Directory.GetFileSystemEntries(recovery).Length==0)Directory.Delete(recovery);
+    }
+    private static bool SignedInstaller(string path,string expectedVersion)
+    {
+        try{return ValidateSignedInstaller(path,expectedVersion);}
+        catch(CryptographicException){return false;}
+        catch(IOException){return false;}
+        catch(ArgumentException){return false;}
+    }
+    private static bool ValidateSignedInstaller(string path,string expectedVersion)
+    {
+        if((File.GetAttributes(path)&FileAttributes.ReparsePoint)!=0)return false;
+        var info=FileVersionInfo.GetVersionInfo(path);Version version;
+        if(info.ProductName==null||info.ProductName.Trim()!="Cute Cat"||!Version.TryParse((info.ProductVersion??"").Trim(),out version)||(expectedVersion!=null&&version.ToString(3)!=expectedVersion))return false;
+        using(var certificate=new X509Certificate2(X509Certificate.CreateFromSignedFile(path)))
+            if(certificate.Thumbprint!=SetupBuild.CertificateThumbprint)return false;
+        var file=new TrustFile{Size=(uint)Marshal.SizeOf(typeof(TrustFile)),Path=path};IntPtr pointer=Marshal.AllocHGlobal(Marshal.SizeOf(typeof(TrustFile)));
+        try
+        {
+            Marshal.StructureToPtr(file,pointer,false);
+            var data=new TrustData{Size=(uint)Marshal.SizeOf(typeof(TrustData)),Ui=2,UnionChoice=1,File=pointer,ProviderFlags=0x1000};
+            var action=new Guid("00AAC56B-CD44-11d0-8CC2-00C04FC295EE");return WinVerifyTrust(new IntPtr(-1),ref action,ref data)==0;
+        }
+        finally{Marshal.DestroyStructure(pointer,typeof(TrustFile));Marshal.FreeHGlobal(pointer);}
+    }
+    [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]private struct TrustFile{public uint Size;[MarshalAs(UnmanagedType.LPWStr)]public string Path;public IntPtr File,Subject;}
+    [StructLayout(LayoutKind.Sequential)]private struct TrustData{public uint Size;public IntPtr Policy,Sip;public uint Ui,Revocation,UnionChoice;public IntPtr File;public uint StateAction;public IntPtr State,Url;public uint ProviderFlags,Context;public IntPtr Signature;}
+    [DllImport("wintrust.dll",ExactSpelling=true)]private static extern int WinVerifyTrust(IntPtr window,ref Guid action,ref TrustData data);
     private static void WriteIni(string directory,string key,string value)
     {if(!WritePrivateProfileString("CuteCatSetup",key,value,Path.Combine(directory,"setup-state.ini")))throw new IOException();}
 

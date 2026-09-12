@@ -67,6 +67,12 @@ public sealed class CatPainter : IDisposable
         CoverJoint(g,new(201,184+rootY),p.BodyYaw,-24,33,29);
         DrawNeckAccessory(g,p);
         DrawHead(g,p);
+        if(p.Celebration>.01)
+        {
+            using var sparkle=new Pen(Color.FromArgb((int)(210*p.Celebration),204,163,79),2.4f){StartCap=LineCap.Round,EndCap=LineCap.Round};
+            foreach(var point in new[]{new V2(116,85),new V2(252,70),new V2(270,128)})
+            {var at=CatRig.Project(point,p.HeadYaw);float x=(float)at.X,y=(float)at.Y,size=(float)(3+4*p.Celebration);g.DrawLine(sparkle,x-size,y,x+size,y);g.DrawLine(sparkle,x,y-size,x,y+size);}
+        }
         if(p.Curl>.05)DrawSleep(g,p);
         if(p.ForeNear.Y < -25 && p.Reach<.01)
             Leg(g,new(201,186+rootY),paw,false,p.BodyYaw,-24,0);
@@ -100,14 +106,19 @@ public sealed class CatPainter : IDisposable
         g.RotateTransform((float)(p.HeadTilt*p.HeadYaw));
         float headScale=(float)(1-.13*p.Curl);
         g.ScaleTransform(headScale*(1-.035f*(float)Math.Abs(p.HeadYaw)),headScale);
+        PointF E(float x,float y,bool left)
+        {
+            float cx=left?-29:31,cy=-30;double a=(left?p.EarLeft:p.EarRight)*Math.PI/180;
+            return new(cx+(float)((x-cx)*Math.Cos(a)-(y-cy)*Math.Sin(a)),cy+(float)((x-cx)*Math.Sin(a)+(y-cy)*Math.Cos(a)));
+        }
         using(var head=new GraphicsPath())
         {
             head.AddBezier(-51,2,-52,-12,-44,-24,-40,-29);
-            head.AddBezier(-40,-29,-42,-39,-44,-51,-38,-53);
-            head.AddBezier(-38,-53,-31,-55,-20,-39,-16,-35);
+            head.AddBezier(new PointF(-40,-29),E(-42,-39,true),E(-44,-51,true),E(-38,-53,true));
+            head.AddBezier(E(-38,-53,true),E(-31,-55,true),E(-20,-39,true),new PointF(-16,-35));
             head.AddBezier(-16,-35,-5,-37,7,-37,18,-34);
-            head.AddBezier(18,-34,25,-40,35,-53,41,-50);
-            head.AddBezier(41,-50,47,-48,43,-34,44,-25);
+            head.AddBezier(new PointF(18,-34),E(25,-40,false),E(35,-53,false),E(41,-50,false));
+            head.AddBezier(E(41,-50,false),E(47,-48,false),E(43,-34,false),new PointF(44,-25));
             head.AddBezier(44,-25,53,-13,57,2,51,18);
             head.AddBezier(51,18,46,38,20,42,1,41);
             head.AddBezier(1,41,-23,43,-49,34,-51,17);
@@ -116,8 +127,8 @@ public sealed class CatPainter : IDisposable
         }
         using(var ear=new GraphicsPath())
         {
-            ear.AddBezier(-36,-40,-36,-45,-28,-37,-26,-32);ear.AddBezier(-26,-32,-30,-30,-34,-29,-35,-30);ear.CloseFigure();g.FillPath(_ear,ear);
-            ear.Reset();ear.AddBezier(34,-36,39,-43,39,-33,38,-29);ear.AddLine(38,-29,29,-31);ear.CloseFigure();g.FillPath(_ear,ear);
+            ear.AddBezier(E(-36,-40,true),E(-36,-45,true),E(-28,-37,true),E(-26,-32,true));ear.AddBezier(E(-26,-32,true),E(-30,-30,true),E(-34,-29,true),E(-35,-30,true));ear.CloseFigure();g.FillPath(_ear,ear);
+            ear.Reset();ear.AddBezier(E(34,-36,false),E(39,-43,false),E(39,-33,false),E(38,-29,false));ear.AddLine(E(38,-29,false),E(29,-31,false));ear.CloseFigure();g.FillPath(_ear,ear);
         }
         using(var mark=new Pen(_ear.Color,3.3f){StartCap=LineCap.Round,EndCap=LineCap.Round})
         {g.DrawLine(mark,-8,-24,-5,-19);g.DrawLine(mark,1,-25,1,-19);g.DrawLine(mark,10,-24,7,-19);}
@@ -214,9 +225,11 @@ public sealed class CatPainter : IDisposable
     private static void DrawHeadAccessory(Graphics g,CatPose p)
     {
         if(p.Accessory!=PetAccessory.Flower)return;
+        var saved=g.Save();g.TranslateTransform(-29,-30);g.RotateTransform((float)p.EarLeft);g.TranslateTransform(29,30);
         using var fill=new SolidBrush(OutfitColor(p));
         for(int i=0;i<5;i++){double a=i*Math.PI*2/5;g.FillEllipse(fill,-38+(float)Math.Cos(a)*6,-38+(float)Math.Sin(a)*6,9,9);}
         using var gold=new SolidBrush(Color.FromArgb(238,200,119));g.FillEllipse(gold,-35,-35,8,8);
+        g.Restore(saved);
     }
     private void DrawSleep(Graphics g,CatPose p)
     {

@@ -1,5 +1,7 @@
 # Windows setup and uninstall contract
 
+**Current 0.8 update:** the same AppId and installation directory remain. The app, helper, installer and uninstaller are signed and timestamped with the reusable protected preview identity. The wizard retains explicit root-trust consent and caches a verified installer in protected `Recovery` for repair/rollback. Uninstall removes owned cached installers. See [the current signing/recovery contract](19-profiles-and-reliability.md) and [build status](build-status.md); certificate expiry and old unsigned wrapper statements below describe earlier releases.
+
 **0.7 update:** the same stable AppId and canonical install directory are retained. The installer now packages app rules, idle behavior, accessories and modern menus. Upgrade from the installed 0.6.1 build and 0.7 removal/reinstall were exercised. Certificate rotation only retires identities explicitly listed in `installer/CertificateHistory.json` when the previous installation's protected metadata proves ownership. Current artifact: `CuteCat-0.7.0-Setup.exe`; current behavior is documented in `18-focus-companion.md`. The older section below records the installer foundation.
 
 Application version: 0.6.1. Setup packaging revision: 0.6.1.1. The user accepted the notification fix and requested a proper installation wizard, a Windows Installed apps entry, and uninstall from that entry. This work packages the existing signed app without changing its cat engine or notification code.

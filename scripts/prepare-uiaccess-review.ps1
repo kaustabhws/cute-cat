@@ -1,41 +1,38 @@
-param()
-$ErrorActionPreference = 'Stop'
-$project = Split-Path $PSScriptRoot -Parent
-$version = (Select-Xml -LiteralPath (Join-Path $project 'src/CuteCat.App/CuteCat.App.csproj') -XPath '/Project/PropertyGroup/Version').Node.InnerText
-$package = Join-Path $project "dist/CuteCat-$version-uiaccess-review"
-if (Test-Path -LiteralPath $package) { throw 'The review package already exists; preserve it and choose a new version.' }
-$payload = Join-Path $package 'payload'
-dotnet publish (Join-Path $project 'src/CuteCat.App') -c Release -r win-x64 --self-contained true -o $payload -p:CuteCatUiAccess=true -p:DebugType=None -p:DebugSymbols=false
-if ($LASTEXITCODE -ne 0) { throw 'UIAccess publish failed.' }
-# This creates a signing key ONLY, never a trusted root or a UIAccess grant.
-# Its private key is deleted after signing; the public certificate is reviewable.
-$certificate = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=Cute Cat Local Preview $version" -CertStoreLocation Cert:\CurrentUser\My -KeyExportPolicy NonExportable -NotAfter (Get-Date).AddDays(30) -HashAlgorithm SHA256
-try {
-    $executable = Join-Path $payload 'CuteCat.exe'
-    $signature = Set-AuthenticodeSignature -LiteralPath $executable -Certificate $certificate -HashAlgorithm SHA256
-    if ($signature.SignerCertificate.Thumbprint -ne $certificate.Thumbprint -or $signature.Status -notin @('Valid','NotTrusted','UnknownError')) { throw 'Signing failed.' }
-    Export-Certificate -Cert $certificate -FilePath (Join-Path $package 'local-preview.cer') | Out-Null
-    Copy-Item -LiteralPath (Join-Path $project 'docs/third-party-notices.md') -Destination (Join-Path $payload 'CUTECAT-THIRD-PARTY-NOTICES.md')
-    Copy-Item -LiteralPath (Join-Path $project 'docs/getting-started.md') -Destination (Join-Path $payload 'GETTING-STARTED.md')
-    $files = @(Get-ChildItem -LiteralPath $payload -File -Recurse | ForEach-Object {
-        [ordered]@{path=[IO.Path]::GetRelativePath($payload,$_.FullName);sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash}
-    })
-    [ordered]@{version=$version;thumbprint=$certificate.Thumbprint;expires=$certificate.NotAfter.ToUniversalTime().ToString('o');files=$files} | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $package 'manifest.json') -Encoding utf8
-    $review=@"
-# Cute Cat $version — local UIAccess preview
-
-This is the updated desktop companion, including user-selected app rules, idle naps, accessories and modern menus. The app guard starts off with no apps selected. It requests normal closes and never answers save prompts or kills processes.
-
-The existing user authorization covers UIAccess for the companion. Installing this version trusts its public signing certificate so Windows can keep the cat above notifications. This is a machine-wide certificate trust change and broader access to other apps' UI. Microsoft intends UIAccess for assistive technology; this remains a local experiment, not a public-release eligibility claim.
-
-Certificate: $($certificate.Thumbprint)
-Expires: $($certificate.NotAfter.ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss')) UTC
-
-Preparation has not added trust. The private signing key is deleted after signing. The installer requests explicit acknowledgment for new trust, preserves existing user data, and removes only known owned certificate entries during upgrade/uninstall. The setup wrapper remains a development build.
-
-See docs/18-focus-companion.md, docs/16-uiaccess-review.md and docs/17-windows-installer.md for behavior, access scope and removal.
-"@
-    $review|Set-Content -LiteralPath (Join-Path $package 'REVIEW.md') -Encoding utf8
-    [pscustomobject]@{Package=$package;Certificate=$certificate.Thumbprint;SignatureStatus=$signature.Status;Trusted=$false;Installed=$false}
+param([string]$CertificateThumbprint)
+$ErrorActionPreference='Stop'
+$project=Split-Path $PSScriptRoot -Parent
+$version=(Select-Xml -LiteralPath (Join-Path $project 'src/CuteCat.App/CuteCat.App.csproj') -XPath '/Project/PropertyGroup/Version').Node.InnerText
+$package=Join-Path $project "dist/CuteCat-$version-uiaccess-review"
+if(Test-Path -LiteralPath $package){throw 'The review package already exists; preserve it before preparing another build.'}
+if($CertificateThumbprint){$certificate=Get-Item -LiteralPath "Cert:\CurrentUser\My\$CertificateThumbprint"}
+else {
+    $certificates=@(Get-ChildItem Cert:\CurrentUser\My | Where-Object {$_.Subject -eq 'CN=Cute Cat Protected Preview' -and $_.HasPrivateKey -and $_.NotAfter -gt (Get-Date).AddDays(30)})
+    if($certificates.Count -gt 1){throw 'Multiple preview identities exist. Select the intended certificate explicitly.'}
+    if($certificates.Count -eq 1){$certificate=$certificates[0]}
+    else {
+        # Kept in this Windows user's CNG key store, never exported to a file or Git.
+        $certificate=New-SelfSignedCertificate -Type CodeSigningCert -Subject 'CN=Cute Cat Protected Preview' -CertStoreLocation Cert:\CurrentUser\My -KeyAlgorithm RSA -KeyLength 3072 -Provider 'Microsoft Software Key Storage Provider' -KeyExportPolicy NonExportable -NotAfter (Get-Date).AddYears(3) -HashAlgorithm SHA256
+    }
 }
-finally { Remove-Item -LiteralPath "Cert:\CurrentUser\My\$($certificate.Thumbprint)" -DeleteKey }
+if(-not $certificate.HasPrivateKey){throw 'The signing identity has no accessible private key.'}
+$payload=Join-Path $package 'payload'
+dotnet publish (Join-Path $project 'src/CuteCat.App') -c Release -r win-x64 --self-contained true -o $payload -p:CuteCatUiAccess=true -p:DebugType=None -p:DebugSymbols=false
+if($LASTEXITCODE -ne 0){throw 'UIAccess publish failed.'}
+& (Join-Path $PSScriptRoot 'sign-artifact.ps1') -Path (Join-Path $payload 'CuteCat.exe') -Thumbprint $certificate.Thumbprint
+Export-Certificate -Cert $certificate -FilePath (Join-Path $package 'local-preview.cer')|Out-Null
+Copy-Item -LiteralPath (Join-Path $project 'docs/third-party-notices.md') -Destination (Join-Path $payload 'CUTECAT-THIRD-PARTY-NOTICES.md')
+Copy-Item -LiteralPath (Join-Path $project 'docs/getting-started.md') -Destination (Join-Path $payload 'GETTING-STARTED.md')
+$files=@(Get-ChildItem -LiteralPath $payload -File -Recurse | ForEach-Object {
+    [ordered]@{path=[IO.Path]::GetRelativePath($payload,$_.FullName);sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash}
+})
+[ordered]@{version=$version;thumbprint=$certificate.Thumbprint;expires=$certificate.NotAfter.ToUniversalTime().ToString('o');protectedPreview=($certificate.Subject -eq 'CN=Cute Cat Protected Preview');files=$files} | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $package 'manifest.json') -Encoding utf8
+@"
+# Cute Cat $version — signed preview
+
+Certificate: $($certificate.Thumbprint). Expires: $($certificate.NotAfter.ToUniversalTime().ToString('yyyy-MM-dd')).
+The nonexportable private key remains in this Windows user's CNG key store for future releases. It is not in this package or repository. Preparation does not add root trust or install the app.
+
+Setup and its uninstaller are signed and timestamped with the same identity. Preview trust is a machine-wide opt-in, not a publicly verified publisher identity. UIAccess remains the previously authorized notification-layering experiment.
+See docs/19-profiles-and-reliability.md for behavior, privacy, updates and recovery.
+"@ | Set-Content -LiteralPath (Join-Path $package 'REVIEW.md') -Encoding utf8
+[pscustomobject]@{Package=$package;Certificate=$certificate.Thumbprint;Expires=$certificate.NotAfter;TrustedByPreparation=$false}

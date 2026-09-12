@@ -1,5 +1,18 @@
 # Product requirements
 
+**0.8 user-authorized additions:** the current requirements below supplement the 0.7 companion milestone; browser work remains deferred.
+
+| ID | Requirement | Acceptance |
+| --- | --- | --- |
+| PROF-01 | Work/Study/Break profiles | Independent app rules/activity; explicit manual override; weekly intervals/overnight/priority; schedule changes cancel pending paws |
+| APP-03 | Exceptions, grace and allowances | Exact-path exceptions; 0–60 second grace; 0–720 minute daily allowance; local bounded aggregates; revalidate/cancel before normal close |
+| DESK-01 | Desktop manners | Remember deliberate resting position per monitor; restore on selection; settle during input; optional transient focused-control avoidance |
+| CAT-11 | Procedural personality | Ear twitch, notice before run, yawn, focus completion celebration; continuous transitions and reduced-motion support; accessories stay anchored |
+| REL-02 | Signed preview/update/recovery | Reusable protected key; timestamped app/setup/uninstaller; same-publisher/hash verified downloads; user-initiated installation; retain verified installers for repair/rollback |
+| QA-08 | Automated Windows coverage | Core and controlled native-policy tests on declared CI OS matrix; report live desktop checks separately |
+
+See [profiles and reliability](19-profiles-and-reliability.md) for precedence, privacy, data and release limitations. Publicly verified signing remains outside the preview signing claim.
+
 Status: proposed specification. These IDs define scope and acceptance. P0 is the first public release; an internal alpha can implement a narrower vertical slice. P1 items are explicitly deferred and must not appear as supported in release copy until verified.
 
 **12 September 2026 user update:** the immediate deliverable is a free native companion with a simple original cat drawn and animated entirely in code: walking, running, meowing, playing, grooming, sleeping/waking, and a paw tap that dismisses supported Windows notification banners. The former sprite implementation was absent at task entry and is superseded by the new source. The browser extension remains future scope. Notification dismissal authorizes the close controls of supported banners, not arbitrary window or tab closing. See [the code-cat revision](14-code-cat.md).

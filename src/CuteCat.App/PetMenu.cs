@@ -37,7 +37,13 @@ public sealed class PetMenu(CompanionHost host)
         menu.Items.Add(Item("Pet & say hello","\uEB51",()=>host.Perform(CatAction.Meow)));
         menu.Items.Add(Item(host.Cat.Action==CatAction.Sleep?"Wake up":"Take a nap","\uE708",()=>host.Perform(host.Cat.Action==CatAction.Sleep?CatAction.Wake:CatAction.Sleep)));
         menu.Items.Add(Item("Park by the taskbar","\uE81D",host.Park));
+        menu.Items.Add(Item("Return to my resting spot","\uE80F",host.ReturnToSpot));
         menu.Items.Add(new Separator());
+        var profiles=new MenuItem{Header="Profile · "+host.CurrentProfile.Name};
+        foreach(var profile in host.Settings.Profiles)
+        {var choice=Item(profile.Name,"\uE8A5",()=>host.SelectProfile(profile.Id));choice.IsCheckable=true;choice.IsChecked=profile.Id==host.CurrentProfile.Id;profiles.Items.Add(choice);}
+        menu.Items.Add(profiles);
+        if(host.CurrentApp is { } selected)menu.Items.Add(Item("Allow "+selected.Rule.Name+" · 5 minutes","\uE916",()=>host.AllowApp(selected.Rule.Path,5)));
         var guard=Item("App guard","\uE72E",()=>host.Update(host.Settings with{AppGuard=!host.Settings.AppGuard}));
         guard.IsCheckable=true;guard.IsChecked=host.Settings.AppGuard;menu.Items.Add(guard);
         menu.Items.Add(Item(FrameClock.Now<host.GuardPausedUntil?"Resume app guard":"Pause app guard · 10 minutes","\uE769",()=>host.PauseGuard(FrameClock.Now<host.GuardPausedUntil?0:10)));

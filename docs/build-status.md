@@ -1,5 +1,37 @@
 # Current build status
 
+## 0.8.0 preview — profiles and reliability
+
+Implemented Work/Study/Break profiles and weekly schedules, per-app exceptions/grace/daily allowances, local bounded usage totals, per-monitor resting spots, settling during work, optional focused-control avoidance, procedural ear twitches/notice/yawn/celebration, and profile switching from the themed pet/tray submenu. Browser URL/tab work remains deferred by user instruction.
+
+The app now offers optional GitHub update checking, same-publisher Authenticode plus SHA-256 verification, user-initiated setup, and protected cached installers for repair/rollback. The app/helper/installer/uninstaller use the same timestamped, nonexportable preview signing identity. This release establishes the recovery baseline; the prior unsigned installer is excluded.
+
+Executed against the 0.8 implementation:
+
+| Check | Result |
+| --- | --- |
+| Release build | Zero warnings/errors |
+| Core checks | 160 passed, 0 failed |
+| Native checks | 79 passed, 0 failed (`qa-v080-release`) |
+| App policies | Allowance, fresh grace, exception during approach, Break cancellation, resumption and independent profile rules passed |
+| Controlled native app close/refusal | Real foreground identity in both fixtures; normal close and one-request refusal passed |
+| Contact | ~2.7 seconds including notice/turn; ~0.405 physical pixel error |
+| Cadence sample | Walk/run mean ~16.66 ms; p95 ~17.03 ms in this RDP session |
+| UI/art | Light/dark native control exports and procedural personality/accessory artwork inspected; profile submenu opens in both themes |
+| Protected signing identity | CNG export policy `None`; SHA-256/RFC 3161 timestamps required |
+| Installer / update trust | 19 package checks passed: registered installation, valid app/helper/setup/uninstaller signatures, identical protected recovery copy; altered, wrong-version, unsigned and other-publisher installers rejected |
+| Uninstall / reinstall | Both completed; program directory and registration removed, exact user state retained, reinstall restored a verified recovery copy |
+
+An early installer check caught padded Inno metadata and a misleading zero exit after a post-install exception. The comparison now trims resource padding, recovery verification precedes file replacement, and unfinished setup returns a nonzero custom exit. Package verification also checks the actual installed state and logs, not only the exit code.
+
+Release installer: `CuteCat-0.8.0-Setup.exe`, **58,825,800 bytes**. SHA-256: `FDA435BC101B666BCE8E6923D796145DCD4D671DD988F321AF3B017214BB8B51`.
+
+Preview certificate: `93ECC442E6EC72D1238D6BCA2E8F80D9B01D88EE`, expires **12 September 2029 at 22:45:49 UTC**. Its private key stays in this Windows user's CNG store and is not shipped or committed. This is preview trust, not public publisher verification or SmartScreen reputation.
+
+Current contracts: [profiles/reliability](19-profiles-and-reliability.md), rig contract version 5, state schema 3. Live Windows 11 notification smoke, real editor avoidance, mixed-DPI/hotplug/RDP reconnect, standard-user UIAccess and future-version rollback remain desktop matrix checks. Existing 0.6/0.7 toast evidence is historical, not a new 0.8 live-toast test. GitHub Actions covers controlled Windows Server 2022/2025 scenarios; it does not prove the Windows 11 desktop matrix.
+
+## Historical 0.7 evidence
+
 ## 0.7.0 preview — focus companion and customization
 
 Implemented app-specific normal-close/reminder rules, angry paw contact, elapsed-idle naps/wake, accessories and colour/activity preferences, modern switches/scrollbars, and one themed menu shared by the pet and tray icon. The user specifically corrected the bandana placement; neckwear now sits behind the chin with a small shoulder fold, and placements were reviewed across standing, front/left, grooming and sleep poses.

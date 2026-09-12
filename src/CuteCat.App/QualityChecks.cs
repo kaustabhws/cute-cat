@@ -88,11 +88,18 @@ public static class QualityChecks
         foreach(string theme in new[]{"Light","Dark"})
         {
             window.SetTheme(theme);
-            foreach(string page in new[]{"Focus","Your cat","App guard","Quiet desktop","Settings"})
+            foreach(string page in new[]{"Focus","Profiles","Your cat","App guard","Quiet desktop","Settings","Updates"})
             {window.Navigate(page);window.UpdateLayout();await Task.Delay(140);RenderWindow(window,Path.Combine(dir,"ui",theme+"-"+page.Replace(' ','-')+".png"));}
             host.Menu.Show(new(host.Cat.WorkArea.Right-350,host.Cat.WorkArea.Bottom-500));await Task.Delay(180);
             if(host.Menu.View is { } menu)RenderElement(menu,Path.Combine(dir,"ui",theme+"-pet-menu.png"));
-            Check(theme+" modern context menu opens",host.Menu.IsOpen);host.Menu.Close();
+            Check(theme+" modern context menu opens",host.Menu.IsOpen);
+            if((host.Menu.View as ContextMenu)?.Items.OfType<MenuItem>().FirstOrDefault(i=>i.HasItems) is { } profiles)
+            {
+                profiles.IsSubmenuOpen=true;await Task.Delay(120);profiles.ApplyTemplate();
+                Check(theme+" profile submenu opens",profiles.Template.FindName("PART_Popup",profiles) is System.Windows.Controls.Primitives.Popup{IsOpen:true});
+                profiles.IsSubmenuOpen=false;
+            }
+            host.Menu.Close();
         }
         window.SetTheme("Light");window.Navigate("Focus");
         window.Width=780;window.Height=620;window.Navigate("Your cat");window.UpdateLayout();
@@ -211,7 +218,7 @@ public static class QualityChecks
         await Task.Delay(1600);host.Update(host.Settings with{Accessory=PetAccessory.Bandana,AccessoryColor="Rose"});await Task.Delay(200);
         Check("accessory reaches native painter",host.Surface.PaintedPose.Accessory==PetAccessory.Bandana);
         ExportCustomizations(dir);
-        if(appFixture is not null)await CheckAppGuard(host,window,dir,Path.GetFullPath(appFixture));
+        if(appFixture is not null){await CheckAppGuard(host,window,dir,Path.GetFullPath(appFixture));await CheckGuardPolicies(host,dir,Path.GetFullPath(appFixture));}
         window.Hide();host.Update(host.Settings with{Quiet=true,AppGuard=false,AppRules=[]});host.Park();await Task.Delay(1000);
         using var process=Process.GetCurrentProcess();process.Refresh();var cpu=process.TotalProcessorTime;var begin=FrameClock.Now;
         await Task.Delay(5000);process.Refresh();
@@ -234,12 +241,13 @@ public static class QualityChecks
         {
             window.SetTheme(theme);
             host.Update(host.Settings with{AppGuard=false,AppRules=[new AppRule(fixture,"Example distraction")]});
-            foreach(string page in new[]{"Your cat","App guard","Settings"})
+            foreach(string page in new[]{"Profiles","Your cat","App guard","Settings","Updates"})
             {window.Navigate(page);window.UpdateLayout();await Task.Delay(150);RenderWindow(window,Path.Combine(dir,"ui",theme+"-"+page.Replace(' ','-')+".png"));}
             host.Menu.Show(new(host.Cat.WorkArea.Right-360,host.Cat.WorkArea.Bottom-550));await Task.Delay(250);
             if(host.Menu.View is { } menu)RenderElement(menu,Path.Combine(dir,"ui",theme+"-pet-menu.png"));host.Menu.Close();
         }
         await CheckAppGuard(host,window,dir,fixture);
+        await CheckGuardPolicies(host,dir,fixture);
         File.WriteAllText(Path.Combine(dir,"feature-checks.json"),JsonSerializer.Serialize(new{checks=Checks},new JsonSerializerOptions{WriteIndented=true}));
     }
     private static async Task CheckAppGuard(CompanionHost host,MainWindow window,string dir,string fixture)
@@ -284,6 +292,47 @@ public static class QualityChecks
             using var font=new Font("Segoe UI",12);g.DrawString(accessories[i].ToString(),font,row==0?System.Drawing.Brushes.DarkSlateGray:System.Drawing.Brushes.White,i*200+18,row*325+260);
         }
         bitmap.Save(Path.Combine(dir,"accessories-and-sleep.png"),ImageFormat.Png);
+    }
+    public static async Task Policies(CompanionHost host,string dir,string fixture)
+    {
+        Directory.CreateDirectory(dir);host.Update(new Preferences{IdleNaps=false});host.ShowCat(true);
+        await CheckGuardPolicies(host,dir,fixture);
+        File.WriteAllText(Path.Combine(dir,"policy-checks.json"),JsonSerializer.Serialize(new{version=BuildInfo.Version,checks=Checks},new JsonSerializerOptions{WriteIndented=true}));
+    }
+    private static async Task CheckGuardPolicies(CompanionHost host,string dir,string fixture)
+    {
+        string folder=Path.Combine(dir,"guard-policies");Directory.CreateDirectory(folder);
+        host.Update(new Preferences{AppGuard=true,Quiet=true,IdleNaps=false,AppRules=[new(fixture,"Policy fixture",CloseDelaySeconds:3,DailyAllowanceMinutes:1)]});
+        using var process=Process.Start(new ProcessStartInfo(fixture){Arguments="--app-window \""+folder+"\"",UseShellExecute=true})!;
+        try
+        {
+            for(int i=0;i<40&&!File.Exists(Path.Combine(folder,"ready"));i++)await Task.Delay(100);
+            IntPtr hwnd=IntPtr.Zero;Native.EnumWindows((h,_)=>{Native.GetWindowThreadProcessId(h,out uint pid);if(pid==process.Id&&Native.IsWindowVisible(h))hwnd=h;return true;},IntPtr.Zero);
+            Check("policy fixture has a test-owned window",hwnd!=IntPtr.Zero);
+            host.TestForegroundWindow=hwnd;await Task.Delay(800);
+            Check("daily allowance postpones native action and counts selected foreground",host.Attempt.Target is null&&!process.HasExited&&host.UsedToday(fixture)>0);
+            host.AllowApp(fixture,5);host.EditRules(rules=>rules.Select(r=>r with{DailyAllowanceMinutes=0}).ToList());await Task.Delay(500);
+            Check("temporary exception postpones native action",host.Attempt.Target is null&&!process.HasExited);
+            host.AllowApp(fixture,0);await Task.Delay(700);
+            Check("revoked exception starts fresh grace",host.Attempt.Target is null&&!process.HasExited&&host.AppGuardStatus.Contains("paw in"));
+            host.EditRules(rules=>rules.Select(r=>r with{CloseDelaySeconds=0}).ToList());
+            for(int i=0;i<30&&host.Attempt.Target is null;i++)await Task.Delay(50);
+            Check("eligible app begins the paw journey",host.Attempt.Target?.AppWindow==true);
+            host.AllowApp(fixture,5);await Task.Delay(650);
+            Check("granting exception cancels an in-flight close",host.Attempt.Target is null&&!process.HasExited&&!File.Exists(Path.Combine(folder,"close-requests.txt")));
+            host.AllowApp(fixture,0);
+            for(int i=0;i<30&&host.Attempt.Target is null;i++)await Task.Delay(50);
+            host.SelectProfile("break");await Task.Delay(650);
+            Check("switching to Break cancels an in-flight close",host.Attempt.Target is null&&!process.HasExited&&host.CurrentProfile.Id=="break");
+            host.SelectProfile("work");double deadline=FrameClock.Now+9;
+            while(FrameClock.Now<deadline&&!process.HasExited)await Task.Delay(50);
+            Check("resuming eligible profile closes only the fixture",process.HasExited&&File.Exists(Path.Combine(folder,"close-requests.txt")));
+            host.SelectProfile("study");host.EditRules(_=>[new(fixture,"Study fixture",Action:AppRuleAction.Remind)]);
+            Check("profile rule editing keeps Work independent",host.Settings.Profiles.Single(p=>p.Id=="work").Rules.Single().Action==AppRuleAction.CloseWindow&&host.CurrentProfile.Rules.Single().Action==AppRuleAction.Remind);
+            host.Cat.MoveTo(new(host.Cat.WorkArea.Center.X,host.Cat.WorkArea.Bottom-40),FrameClock.Now);host.RememberSpot();var saved=host.Settings.RestingSpots.Single();
+            Check("explicit monitor spot is persisted in normalized coordinates",saved.X>=0&&saved.X<=1&&saved.Y>=0&&saved.Y<=1);
+        }
+        finally{host.TestForegroundWindow=null;host.Update(new Preferences{Quiet=true});File.WriteAllText(Path.Combine(folder,"quit"),"");}
     }
     private static void RenderElement(FrameworkElement element,string path)
     {

@@ -8,7 +8,7 @@ using CuteCat.Core;
 namespace CuteCat.App;
 
 public sealed record DesktopApp(string Path,string Name);
-public sealed record AppCloseCandidate(NotificationTarget Target,AppRule Rule);
+public sealed record AppCloseCandidate(NotificationTarget Target,AppRule Rule,bool CanClose=true,bool Handled=false);
 public enum AppCloseResult { Closed, Requested, Cancelled }
 
 /// <summary>Only a user-selected executable's foreground, unowned top-level window.</summary>
@@ -69,12 +69,13 @@ public sealed class DesktopApps
                 if(rule is null)return null;
                 using var process=Process.GetProcessById((int)pid);
                 string identity="app:"+window.ToInt64()+":"+pid+":"+process.StartTime.ToFileTimeUtc();
-                if(_handled.ContainsKey(identity))return null;
+                bool handled=_handled.ContainsKey(identity);
                 if(rule.Action==AppRuleAction.Remind)
-                    return new(new(identity,window.ToInt64(),(int)pid,new Area(0,0,1,1),now,epoch,AppWindow:true),rule);
-                var close=CloseControl(window,(int)pid);if(close is null){LastScan="NoCaption";return null;}
+                    return new(new(identity,window.ToInt64(),(int)pid,new Area(0,0,1,1),now,epoch,AppWindow:true),rule,Handled:handled);
+                var close=CloseControl(window,(int)pid);
+                if(close is null){LastScan="NoCaption";return new(new(identity,window.ToInt64(),(int)pid,new Area(0,0,1,1),now,epoch,AppWindow:true),rule,false,handled);}
                 LastScan="SupportedApp";
-                return new(new(identity,window.ToInt64(),(int)pid,close.Value.Area,now,epoch,AppWindow:true),rule);
+                return new(new(identity,window.ToInt64(),(int)pid,close.Value.Area,now,epoch,AppWindow:true),rule,true,handled);
             }
             catch(Exception e)when(PlatformFailure(e)){return null;}
         }
@@ -87,7 +88,7 @@ public sealed class DesktopApps
             {
                 if(!valid())return AppCloseResult.Cancelled;
                 var current=Find(settings,focusing,now(),0,target.Epoch);
-                if(current is null||!NotificationAttempt.Matches(target,current.Target,now())||current.Rule.Action!=AppRuleAction.CloseWindow)return AppCloseResult.Cancelled;
+                if(current is null||current.Handled||!current.CanClose||!NotificationAttempt.Matches(target,current.Target,now())||current.Rule.Action!=AppRuleAction.CloseWindow)return AppCloseResult.Cancelled;
                 IntPtr window=new(target.Window);
                 var close=CloseControl(window,target.Process);
                 if(close is null||!NotificationAttempt.SameGeometry(close.Value.Area,target.Button,2)||!valid()||_foreground()!=window)return AppCloseResult.Cancelled;

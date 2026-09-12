@@ -1,0 +1,48 @@
+name: Windows checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-and-policy:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build and deterministic checks
+        shell: pwsh
+        run: |
+          dotnet build CuteCat.slnx -c Release
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          dotnet run --project tests/CuteCat.Checks -c Release --no-build
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          dotnet build tests/CuteCat.ShellProbe -c Release
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - name: Controlled Windows app rules
+        shell: pwsh
+        run: |
+          $fixture = Join-Path $pwd 'tests/CuteCat.ShellProbe/bin/Release/net10.0-windows10.0.19041.0/CuteCat.ShellProbe.exe'
+          $qa = Join-Path $pwd 'artifacts/ci-policy'
+          $process = Start-Process './src/CuteCat.App/bin/Release/net10.0-windows10.0.19041.0/CuteCat.exe' -ArgumentList @('--standard-user','--qa',('"'+$qa+'"'),'--policy-checks','--app-fixture',('"'+$fixture+'"')) -WindowStyle Hidden -Wait -PassThru
+          exit $process.ExitCode
+      - name: Export procedural artwork
+        shell: pwsh
+        run: dotnet run --project tools/CuteCat.SetupArtwork -c Release -- artifacts/ci-art
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: checks-${{ matrix.os }}
+          path: |
+            artifacts/ci-policy/policy-checks.json
+            artifacts/ci-policy/failure.txt
+            artifacts/ci-art/personality.png
+          if-no-files-found: ignore

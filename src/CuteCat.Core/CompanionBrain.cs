@@ -4,7 +4,7 @@ public enum PetAccessory { None, Bandana, BowTie, BellCollar, Flower }
 public enum ActivityLevel { Calm, Balanced, Playful }
 public enum AppRuleAction { CloseWindow, Remind }
 public enum AppRuleScope { Always, DuringFocus }
-public sealed record AppRule(string Path,string Name,AppRuleAction Action=AppRuleAction.CloseWindow,AppRuleScope Scope=AppRuleScope.Always,bool Enabled=true);
+public sealed record AppRule(string Path,string Name,AppRuleAction Action=AppRuleAction.CloseWindow,AppRuleScope Scope=AppRuleScope.Always,bool Enabled=true,int CloseDelaySeconds=0,int DailyAllowanceMinutes=0);
 public enum IdleTransition { None, Sleep, Wake }
 
 /// <summary>Only elapsed inactivity enters the brain. No input events or content.</summary>
@@ -12,6 +12,7 @@ public sealed class CompanionBrain
 {
     public bool AutoSleeping { get; private set; }
     private bool _manualSleep;
+    public bool WantsSleep=>_manualSleep||AutoSleeping;
     public void UserAction(CatAction action){AutoSleeping=false;_manualSleep=action==CatAction.Sleep;}
     public IdleTransition Observe(double idleSeconds,bool enabled,double thresholdSeconds,bool busy)
     {

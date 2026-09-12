@@ -11,6 +11,12 @@ In App guard, add an open app or browse to its .exe, choose reminder/paw-close a
 
 Your cat has bandana, bow tie, bell collar and flower accessories, several colours, activity levels, and optional idle naps. Idle naps wake with a stretch when you return; manual Sleep waits for Wake or interaction. Animations remain entirely code-driven.
 
-This local preview's signing certificate expires on @@EXPIRY@@. Install a newer signed build or remove this preview by then. No updater or automatic renewal is installed.
+Use Profiles to choose Work, Study or Break, set activity and schedule weekly changes. Selecting a profile manually pauses schedules until you enable them again. The global app guard switch always stays under your control.
+
+Each app rule can have a grace period, a daily allowance and a temporary exception. Only selected-app foreground totals are stored locally; no titles or browsing timeline are recorded. Drag the cat to remember a spot on that monitor. Settings also offers optional focused-control avoidance.
+
+Settings > Updates & recovery checks GitHub for previews and verifies the installer before opening setup. Downloads and installation require your action. Setup retains this and the previous compatible signed installer in the Recovery folder for repair/rollback. This release establishes the recovery baseline; the older unsigned installer is not used for verified rollback.
+
+This preview's notification-access certificate expires on @@EXPIRY@@. Setup and its uninstaller are signed and timestamped with the same protected preview identity. It is not public publisher verification.
 
 This is a local development build. Browser feed protection remains future work.
