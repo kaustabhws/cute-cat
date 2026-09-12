@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType><TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF><UseWindowsForms>true</UseWindowsForms><AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationManifest>app.manifest</ApplicationManifest><Version>0.7.0</Version>
+    <ApplicationManifest Condition="'$(CuteCatUiAccess)' == 'true'">app.uiaccess.manifest</ApplicationManifest>
+    <ApplicationIcon Condition="Exists('../../assets/app.ico')">../../assets/app.ico</ApplicationIcon>
+    <!-- WPF owns startup; WinForms is used only for the tray and monitor enumeration. -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+    <AssemblyName>CuteCat</AssemblyName><RootNamespace>CuteCat.App</RootNamespace><ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup><ProjectReference Include="../CuteCat.Core/CuteCat.Core.csproj" /></ItemGroup>
+  <ItemGroup><PackageReference Include="CommunityToolkit.WinUI.Notifications" Version="7.1.2" /></ItemGroup>
+</Project>

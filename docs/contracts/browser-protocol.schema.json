@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cute Cat native bridge v1",
+  "oneOf": [
+    {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "requestId", "type", "browser"],
+      "properties": {
+        "schemaVersion": {"const": 1},
+        "requestId": {"type": "string", "maxLength": 100},
+        "type": {"enum": ["state", "pause", "guarded"]},
+        "browser": {"enum": ["Chrome", "Edge"]},
+        "sessionId": {"type": "string", "maxLength": 100},
+        "ruleId": {"type": "string", "maxLength": 100},
+        "interventionId": {"type": "string", "minLength": 16, "maxLength": 100}
+      },
+      "allOf": [
+        {"if": {"properties": {"type": {"enum": ["pause", "guarded"]}}}, "then": {"required": ["sessionId"]}},
+        {"if": {"properties": {"type": {"const": "guarded"}}}, "then": {"required": ["ruleId", "interventionId"]}}
+      ]
+    },
+    {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "requestId", "connected"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "requestId": {"type": "string", "maxLength": 100},
+        "connected": {"type": "boolean"}, "active": {"type": "boolean"},
+        "sessionId": {"type": "string"}, "revision": {"type": "integer"},
+        "leaseMs": {"const": 4500}, "catName": {"type": "string", "maxLength": 24},
+        "error": {"enum": ["unsupported-message", "desktop-unavailable"]},
+        "rules": {"type": "array", "items": {"type": "object", "required": ["id", "name", "host", "kind", "enabled"], "properties": {"id": {"type": "string"}, "name": {"type": "string"}, "host": {"type": "string"}, "kind": {"enum": ["shorts", "host"]}, "enabled": {"type": "boolean"}}, "additionalProperties": false}}
+      }
+    }
+  ]
+}

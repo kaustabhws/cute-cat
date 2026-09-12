@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 2,
+  "characterId": "cat_01",
+  "referenceVersion": "v002",
+  "canvasSize": 384,
+  "pivot": {
+    "x": 192,
+    "y": 354
+  },
+  "pawContact": {
+    "x": 348,
+    "y": 69
+  },
+  "clips": [
+    {
+      "id": "idle",
+      "loop": true,
+      "loopFrom": 0,
+      "frames": [
+        {
+          "file": "idle-b00.png",
+          "durationMs": 240,
+          "sha256": "901af0c0d9acb272544d9c712f4282d84b404a9f91b7825d030926fd30660287"
+        },
+        {
+          "file": "idle-b01.png",
+          "durationMs": 240,
+          "sha256": "5047fa778ce7dab16714e81ef3bfc40bcd2d86ac5278ceca18da965f73d80300"
+        },
+        {
+          "file": "idle-b02.png",
+          "durationMs": 240,
+          "sha256": "2948d57a53082454e22d76a26c2fad2d2504a015fbd844895d83131979d0a8df"
+        },
+        {
+          "file": "idle-b03.png",
+          "durationMs": 240,
+          "sha256": "e77c577bdf78846f8ce07fa1e6594fd835ce2be2551b855690dfb4e8cc047205"
+        },
+        {
+          "file": "idle-b04.png",
+          "durationMs": 240,
+          "sha256": "d5eb8eb0db364322799a2b30fc91775f4f45c45a3f63fe43c19e9cd8c5a02d0a"
+        },
+        {
+          "file": "idle-b05.png",
+          "durationMs": 240,
+          "sha256": "7502a2a7dd4d5cd839ac562835b70d3a277d1b9254ef3ef1f8ebeec9b82bcf59"
+        },
+        {
+          "file": "idle-b06.png",
+          "durationMs": 240,
+          "sha256": "7fb912fbdb35d6fd2ea709654261d79c6e1e732d3033cc8cafe66759ae5f86f4"
+        },
+        {
+          "file": "idle-b07.png",
+          "durationMs": 240,
+          "sha256": "7502a2a7dd4d5cd839ac562835b70d3a277d1b9254ef3ef1f8ebeec9b82bcf59"
+        },
+        {
+          "file": "idle-b08.png",
+          "durationMs": 240,
+          "sha256": "d5eb8eb0db364322799a2b30fc91775f4f45c45a3f63fe43c19e9cd8c5a02d0a"
+        },
+        {
+          "file": "idle-b09.png",
+          "durationMs": 240,
+          "sha256": "e77c577bdf78846f8ce07fa1e6594fd835ce2be2551b855690dfb4e8cc047205"
+        },
+        {
+          "file": "idle-b10.png",
+          "durationMs": 240,
+          "sha256": "2948d57a53082454e22d76a26c2fad2d2504a015fbd844895d83131979d0a8df"
+        },
+        {
+          "file": "idle-b11.png",
+          "durationMs": 240,
+          "sha256": "5047fa778ce7dab16714e81ef3bfc40bcd2d86ac5278ceca18da965f73d80300"
+        }
+      ]
+    }
+  ]
+}

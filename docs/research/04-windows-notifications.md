@@ -1,0 +1,13 @@
+# Windows notification feasibility
+
+**0.4.0 evidence update, 12 September:** Microsoft's current listener guide was re-read. The code-drawn app implements a narrow shell UIA close adapter and a separate app-owned practice card. Its real Windows test emitted a tray notification but observed no supported banner (`NoBanner`), so no shell dismissal was confirmed. The earlier user report below belongs to a different build and is historical only. See [the current companion contract](../13-companion-and-notifications.md).
+
+Primary sources checked 11 September 2026. This note covers the user's added requirement: run to a Windows notification's close control and tap it with a paw.
+
+The [Microsoft notification listener documentation](https://learn.microsoft.com/en-us/windows/apps/develop/notifications/app-notifications/notification-listener) documents a User Notification Listener manifest capability, an explicit RequestAccessAsync consent flow, access-status checks, and RemoveNotification(notificationId). It also documents broad ClearNotifications, which is unsuitable for this request. A listener can target a notification ID but does not supply a screen-space close-button rectangle for the cat to reach. Broad notification-history access is not needed for the current narrow visual interaction.
+
+The current implementation uses Windows UI Automation's close-control invocation within recognized shell toast containers. It requests structural identity, bounds, visibility and InvokePattern, without reading message text. This preserves a visible target and avoids global mouse injection. Shell automation IDs are not a supported stable notification API, so unknown variants are left alone. The implementation contract and limitations are in [the companion/notification document](../13-companion-and-notifications.md).
+
+The app includes a labeled practice card to prove motion and contact geometry independently of shell compatibility. It also offers a real Windows test banner from its tray icon. On 11 September the user reported: **“The cat dismisses the Windows banner”** after following the real-banner test steps. This is a user-performed interactive check, not an agent-observed screen recording or a claim about every Windows build.
+
+Agent-side native input returned `GetCursorPos failed: Access is denied (0x80070005)` and screenshot capture returned `IGraphicsCaptureItemInterop.CreateForMonitor ... (0x80070057)`. The native accessibility tree was readable. Therefore automated routed WPF events, native compositing and motion tests are reported separately from real mouse/click-through/Narrator testing.

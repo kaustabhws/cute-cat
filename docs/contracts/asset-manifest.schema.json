@@ -1,0 +1,13 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"Cute Cat v2 timed animation pack",
+  "type":"object","additionalProperties":false,
+  "required":["schemaVersion","characterId","referenceVersion","canvasSize","pivot","pawContact","clips"],
+  "properties":{
+    "schemaVersion":{"const":2},"characterId":{"const":"cat_01"},"referenceVersion":{"type":"string"},
+    "canvasSize":{"const":384},
+    "pivot":{"$ref":"#/$defs/point"},"pawContact":{"$ref":"#/$defs/point"},
+    "clips":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["id","loop","loopFrom","frames"],"properties":{"id":{"enum":["idle","walk_left","walk_right","run_left","run_right","groom","play","sleep","wake","paw","drag","land"]},"loop":{"type":"boolean"},"loopFrom":{"type":"integer","minimum":0},"frames":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["file","durationMs","sha256"],"properties":{"file":{"type":"string","pattern":"^[a-z_]+-[a-z0-9-]+\\.png$"},"durationMs":{"type":"integer","minimum":8,"maximum":10000},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}}}}}}}
+  },
+  "$defs":{"point":{"type":"object","required":["x","y"],"properties":{"x":{"type":"integer","minimum":0,"maximum":384},"y":{"type":"integer","minimum":0,"maximum":384}},"additionalProperties":false}}
+}

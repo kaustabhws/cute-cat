@@ -1,0 +1,7 @@
+[
+  {"schemaVersion":1,"requestId":"example-1","type":"state","browser":"Edge"},
+  {"schemaVersion":1,"requestId":"example-1","connected":true,"active":true,"sessionId":"60fb88d6-24b7-48b3-8295-5a5b1d962db0","revision":1,"leaseMs":4500,"catName":"Miso","rules":[{"id":"shorts","name":"YouTube Shorts","host":"www.youtube.com","kind":"shorts","enabled":true}]},
+  {"schemaVersion":1,"requestId":"example-2","type":"guarded","browser":"Edge","sessionId":"60fb88d6-24b7-48b3-8295-5a5b1d962db0","ruleId":"shorts","interventionId":"7f5bfc95-777d-4dc2-b2da-9bb4e529e60c"},
+  {"schemaVersion":1,"requestId":"example-3","type":"pause","browser":"Edge","sessionId":"60fb88d6-24b7-48b3-8295-5a5b1d962db0"},
+  {"schemaVersion":1,"requestId":"example-4","connected":false,"active":false,"error":"desktop-unavailable"}
+]

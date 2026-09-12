@@ -1,0 +1,13 @@
+Cute Cat — local Windows preview
+
+One original cat, drawn and animated entirely in code. No account, subscription, cloud service or runtime image generation is required.
+
+This setup installs Cute Cat for this PC and adds a Start menu shortcut and an entry in Windows Settings > Apps > Installed apps. The next page explains the Windows access needed to keep the cat above notifications.
+
+This is a local development build. Its notification-access certificate expires on @@EXPIRY@@. It needs a newer signed build after that date. Setup does not install an updater or change Windows security policies.
+
+App guard only responds to desktop apps you explicitly select. It requests normal window closing, leaving save prompts to you. Browser tab URL detection is not included.
+
+Your cat settings and focus history live in your Windows user profile. Reinstall and uninstall preserve them. The app's Settings page can clear focus history when you choose.
+
+Cute Cat is a working project name, not a cleared public brand. No public distribution is claimed by this local installer.

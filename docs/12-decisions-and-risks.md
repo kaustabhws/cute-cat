@@ -1,0 +1,69 @@
+# Decisions and risks
+
+| ID | Decision | Status / reason |
+| --- | --- | --- |
+| D01 | Soft hand-painted 2D | Historical; superseded by explicit code-only direction D21 on 12 September |
+| D02 | Native Windows C#/.NET 10, WPF + Win32 cat | Selected implementation direction; mature native UI and specialized small overlay |
+| D03 | Reversible page shield | Default; preserves tabs and unsaved state; no automatic close/kill |
+| D04 | Browser-authorized context | Selected; executable names cannot reliably identify Shorts |
+| D05 | Local deterministic rules | Selected; no runtime AI/model download or screen capture |
+| D06 | One cat before many cosmetics | Selected; animation cohesion is the quality priority |
+| D07 | Windows 11 x64 first | Initial support target; ARM64/older Windows require separate validation |
+| D08 | Atomic JSON for local alpha; SQLite deferred | Bounded data makes a small dependency-free start viable; migrate only when needed |
+| D09 | User-provided Azure endpoint / gpt-image-2 | Authorized for build-time artwork; environment key only; see Azure setup |
+| D10 | Local working alpha before public-release scope | User asked to build; signing/store distribution remain separate and must be reported honestly |
+| D11 | Rebuild from documentation-only checkout | 11 September: no source, assets, scripts, tests or distribution existed despite the old status file; previous completion/test claims cannot be attributed to this checkout |
+| D12 | Completely free, native companion appearance | Explicit user decision, 11 September; supersedes all paid-feature/cosmetic/subscription exploration. No SaaS dashboard |
+| D13 | Narrow notification close authorization | User specifically requested Windows notification paw dismissal. Explicit app opt-in; scoped shell toast UIA controls only, identity/bounds rechecked; no broad window closing, message reading or input injection |
+| D14 | Companion milestone precedes browser reconstruction | Current code focuses on requested motion/notifications plus a local focus timer. Existing browser design/protocol pages describe future work, not an implemented extension |
+| D15 | New immutable original reference v002 | v001 files missing; generated original cream/taupe cat via authorized deployment. Actual patch is anatomical right. No borrowed art or mirrored asymmetric coats |
+| D16 | Explicit cat motion controls | Full cat animation by default, with Reduce motion and optional Follow Windows animation preference. The automation session reports Windows animations disabled; explicit controls avoid silently disabling all requested cat actions |
+| D17 | Asset manifest v2 | 384px canvas, timing/loop entry, ground pivot, measured paw anchor, SHA-256 files, bounded caches; generated keys plus reviewed offline in-betweens, not claimed as hand-authored animation |
+| D18 | Short, explicit interaction recovery | 12 September user bug report: touches/drops must not enter parking or a long idle chain. Tap resumes in 1.1 s; drop in 0.7 s, unless quiet/reduced/focus mode intentionally parks the cat. Monitor/settings refresh must be idempotent |
+| D19 | High-resolution active frame clock and predecoded sprites | DispatcherTimer still measured ~27 ms after image work was moved off-thread. Windows waitable-timer deadlines measured ~16.67 ms with a one-frame queue; retain slower idle cadence and asynchronous saves |
+| D20 | Revised motion pack, same v002 character | Four new 12-key gait sheets and one friendly surprised drag pose generated through the existing Azure authorization. Local exports add registered in-betweens, remove flow islands, and preserve the earlier pack in `assets/cat` for comparison |
+| D21 | Original vector cat and continuous procedural rig | Latest explicit user request: simple rounded/block-like cat, entirely in code, smooth walk/run/meow/groom/sleep. Supersedes D01/D15/D17/D20's raster character and frame cache. No competitor contour/source copied |
+| D22 | Rebuild evidence from actual checkout | Only docs existed at entry; historical build/art/timing claims cannot establish the current implementation. New 0.4.0 source, checks and artifacts are authoritative |
+| D23 | Reusable direct-draw surface | GDI+ cubic paths into a persistent premultiplied DIB, one native DC, waitable frame clock; shared painter for WPF. No frame decoding or runtime image service |
+| D24 | Reduced motion rests paw helper | No automatic travel/dismissal in reduced mode; clearly labeled in UI. No silent broad-notification fallback |
+| D25 | Preserve discovered legacy local data | Flat Version 1 migrates through a separate original backup; retain prior notification permission and restore sessions paused. Unknown/future schemas remain untouched |
+| D26 | Shell test is an unresolved compatibility gate | Current real-banner test reported NoBanner and no invocation. Practice success is independent evidence; do not reuse the earlier user's report as proof for this build |
+| D27 | Continuous projected turns | User rejected instant direction mirroring. 0.5.0 uses an 860 ms planted turn with head/body/tail timing, full-width front view and paw shuffle. Interrupted turns preserve displayed orientation and cancel future movement |
+| D28 | Softer original character, revision 2 | User requested greater cuteness without realism. Retain cream/three-oat identity while shortening/plumping the body, enlarging round cheeks, lowering facial features and shortening the plush tail. All art remains code |
+| D29 | Continuous urgent notification journey | Current position is the start; no parking/teleport. Cubic eased straight travel takes 0.35–1.55 s; urgent turns use the existing rig over 0.42 s. Gait remains continuous and capped at six cycles/s |
+| D30 | Adaptive paw endpoint and entrance stabilization | Solve a valid body position plus an endpoint inside the vector canvas. Wait for 120 ms of stable close geometry before approaching. Preserve the original eight-second candidate lifetime |
+| D31 | Narrow shell control discovery | Verified ShellExperienceHost / ShellHost image paths and process start time, known shell classes, flat UIA root fallback, exact runtime identities and corner geometry. Known close IDs first; a bounded English OS close-icon label fallback reads only that icon label, never notification message text. Exclude Notification Center ancestors |
+| D32 | Real WinRT test notification | CommunityToolkit.WinUI.Notifications 7.1.2 (MIT), .NET 10 Windows SDK target, own per-user app notification identity. No notification-listener permission or access to other notification payloads |
+| D33 | Standard-user runtime | Microsoft documents notifications as unsupported for elevated apps. Relaunch with a limited token when launched elevated, preserving only the current user's access to its own process objects. No account/UAC/OS security setting is changed; ordinary standard-user launches require no relaunch |
+| D34 | Plugin-free verification and remaining shell gate | User requested no computer plugin. 0.6 native tests use compiled app/Windows APIs directly. The real test was accepted but no popup was exposed while Windows reported busy; keep this distinct from passing motion/UIA fixture tests |
+
+## Risk register
+
+- **D38 — Explicit selected-app closing:** the user authorized app-specific normal closing with an angry paw. Exact executable paths, foreground window identity, supported caption controls and painted contact are required. Scope can be always or focus-only; global and per-rule controls start safe. No process kill, save-prompt handling or URL/title classification.
+- **D39 — Local companion brain and accessories:** elapsed idle time drives naps and waking; manual/quiet/reduced-motion priorities remain explicit. Continuous code adds a nose bubble/z symbols, wake stretch and mood. Bandana/collar/bow tie are anchored behind the chin, with a side shoulder fold; flower belongs to the head. No runtime images or cloud inference.
+- **D40 — Source/release publication:** the user explicitly named `kaustabhws/cute-cat` and asked for source commits and the installer in Releases. Publish the functional preview with signing limitations disclosed. Exclude private config, user data, diagnostic captures, build caches and credentials. This authorization supersedes the earlier local-only delivery boundary for that repository.
+
+- **D37 — Native installer:** user requested a wizard and Windows Installed apps/uninstall integration after accepting 0.6.1. Use Inno Setup 7.1.0 with a stable AppId, the unchanged signed app payload, generated code-cat wizard art, per-PC Program Files installation, explicit UIAccess trust acknowledgment, and Windows Restart Manager for the exact Cute Cat executable. Preserve user settings/history; remove only owned program artifacts and certificate trust. Same-version reinstall and legacy adoption are tested; future version/certificate upgrades need their own verification. See `17-windows-installer.md`.
+
+12 September follow-up decisions:
+
+- **D35 — Actual Windows 11 template:** direct FindWindowEx discovery; NormalToastView/FlexibleToastView support; known small right-aligned close controls below hero images; live scroll wrappers allowed, NotificationCenterGrid excluded. Production live UIA dismissal now confirmed, superseding D26/D34's earlier unconfirmed shell result.
+- **D36 — Protected notification layer:** desktop TOPMOST cannot paint above shell notifications. The user explicitly approved the reviewed UIAccess test installation and its machine trust change. Its runtime UIAccess token and native window order above the toast are verified. Microsoft discourages this permission for ordinary non-accessibility apps; it remains an expiring local experiment, not a public-release recommendation. Do not claim foreground paw overlap from off-screen buffer contact alone. See `16-uiaccess-review.md`.
+
+| Risk | Mitigation / evidence needed |
+| --- | --- |
+| Cat becomes a distraction | Quiet default during focus; long held poses; one-week user feedback |
+| Inconsistent generated anatomy | Reference-conditioned edits, registered poses, native playback review |
+| Chroma-key halos | Inspect alpha on multiple backgrounds; despill and edge cleanup; no model switch without authorization |
+| Wrong page intervention | Document-local matching, continuous dwell, revision/session check, reversible action |
+| Browser changes break adapters | Narrow supported routes, fixtures, fail-open behavior, honest coverage |
+| Extension setup friction | Explicit connection screen and test; store distribution before public release |
+| Sprite memory/CPU | Runtime-size exports, bounded cache, suspend idle/hidden animation |
+| Monitor/DPI issues | Signed coordinates, work-area clamping, actual multi-monitor QA |
+| Native bridge misuse | Current-user pipe, exact extension origins, bounded typed messages, no command execution |
+| Underestimated release work | Distinguish runnable alpha from signed installer/store release; record unchecked cases |
+| Branding/IP overlap | Original character and name check before publishing; track every asset's provenance |
+
+## Open decisions
+
+Public brand/name, store distribution ownership, signing provider, updater, final release support matrix, additional free art variants, scheduling, Firefox, ARM64, and route-specific Reels/TikTok expansion. The app's cost is settled: completely free. These remaining decisions do not block the local companion milestone.

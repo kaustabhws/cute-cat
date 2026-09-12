@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "status": "implemented-0.5.0",
+  "units": "DIP unless otherwise specified",
+  "colors": {
+    "light": {
+      "background": "#F8F7F0",
+      "surface": "#EFEEE3",
+      "surfaceAlt": "#E0E8D9",
+      "text": "#293C32",
+      "textMuted": "#626D60",
+      "accent": "#365841",
+      "onAccent": "#FAFAF4",
+      "border": "#DADDD0",
+      "focusRing": "#365841",
+      "danger": "#A03E35"
+    },
+    "dark": {
+      "background": "#202B25",
+      "surface": "#2C382F",
+      "surfaceAlt": "#394D3E",
+      "text": "#F2F0E2",
+      "textMuted": "#B9C4B6",
+      "accent": "#B7CEA9",
+      "onAccent": "#202F24",
+      "border": "#455347",
+      "focusRing": "#B7CEA9",
+      "danger": "#FFA99A"
+    }
+  },
+  "typography": {
+    "fontFamily": "Segoe UI",
+    "displayFontFamily": "Georgia",
+    "fallback": "Segoe UI",
+    "caption": 12,
+    "label": 13,
+    "body": 14,
+    "sectionTitle": 20,
+    "pageTitle": 31,
+    "timer": 64
+  },
+  "spacing": [4, 8, 12, 16, 24, 32, 48],
+  "radius": { "control": 9, "card": 22, "pill": 999 },
+  "dimensions": {
+    "controlMinHeight": 40,
+    "primaryButtonHeight": 44,
+    "windowWidth": 900,
+    "windowHeight": 700,
+    "minimumWidth": 780,
+    "minimumHeight": 620,
+    "catHeights": [96, 128, 160],
+    "catDefaultHeight": 128,
+    "desktopMargin": 16
+  },
+  "motionMs": { "poseBlend": 320, "turn": 860, "pawPlateauStart": 480, "pawPlateauEnd": 820 },
+  "reducedMotion": { "roaming": false, "largeTransforms": false, "automaticPawDismissal": false, "useStaticStatusCue": true }
+}

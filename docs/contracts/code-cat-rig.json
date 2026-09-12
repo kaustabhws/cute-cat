@@ -1,0 +1,104 @@
+{
+  "contractVersion": 4,
+  "characterRevision": 2,
+  "character": "oat-cat-01",
+  "renderer": "original-cubic-paths",
+  "canvas": {
+    "width": 320,
+    "height": 256
+  },
+  "pivot": {
+    "x": 160,
+    "y": 228
+  },
+  "designHeight": 180,
+  "logicalSizeTiers": [
+    96,
+    128,
+    160
+  ],
+  "symmetricCoat": true,
+  "poseBlendSeconds": 0.32,
+  "actions": [
+    "Idle",
+    "Walk",
+    "Run",
+    "Groom",
+    "Sleep",
+    "Meow",
+    "Play",
+    "Drag",
+    "Land",
+    "Paw",
+    "Turn",
+    "Wake"
+  ],
+  "turn": {
+    "seconds": 0.86,
+    "bodyStartSeconds": 0.1,
+    "bodyDurationSeconds": 0.65,
+    "headDurationSeconds": 0.55,
+    "tailStartSeconds": 0.14,
+    "tailDurationSeconds": 0.72,
+    "orientationRange": [
+      -1,
+      1
+    ],
+    "frontOrientation": 0,
+    "planted": true,
+    "mirrorDrawing": false
+  },
+  "paw": {
+    "defaultX": 287,
+    "defaultY": 107,
+    "endpointRangeX": [
+      224,
+      300
+    ],
+    "endpointRangeY": [
+      50,
+      229
+    ],
+    "commitAgeMinimum": 0.48,
+    "commitAgeMaximum": 0.82,
+    "paintTolerancePhysicalPixels": 1.5
+  },
+  "notificationJourney": {
+    "path": "cubic-eased-straight-line",
+    "travelSeconds": [
+      0.35,
+      1.55
+    ],
+    "urgentTurnSeconds": 0.42,
+    "stabilitySeconds": 0.12,
+    "gaitMaximumCyclesPerSecond": 6
+  },
+  "cadenceTargets": {
+    "active": 60,
+    "idle": 15,
+    "sleep": 15,
+    "reduced": 1,
+    "hidden": 0
+  },
+  "runtimeImageAssets": false,
+  "source": [
+    "src/CuteCat.Core/CatRig.cs",
+    "src/CuteCat.Core/TurnTransition.cs",
+    "src/CuteCat.App/CatPainter.cs"
+  ],
+  "accessories": [
+    "None",
+    "Bandana",
+    "BowTie",
+    "BellCollar",
+    "Flower"
+  ],
+  "accessoryPlacement": "Neckwear between body and head; shoulder-side bandana fold; head-anchored ear flower",
+  "sleep": {
+    "held": true,
+    "noseBubble": "continuous breathing",
+    "symbols": "three staggered floating z glyphs",
+    "wake": "procedural stretch"
+  },
+  "stateSchema": 2
+}

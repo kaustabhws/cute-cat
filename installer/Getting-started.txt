@@ -1,0 +1,16 @@
+Cute Cat
+
+Open Cute Cat from the Start menu or desktop shortcut. Click the cat to greet it, drag to move it, or right-click for its menu. Closing the control window keeps the cat in the tray; choose Quit to stop it.
+
+In Quiet desktop, enable the optional Windows notification paw helper. Reduced motion, a locked desktop and full-screen suppression can pause it. This installer preserves existing preferences and does not enable Windows startup automatically.
+
+To uninstall: Settings > Apps > Installed apps > Cute Cat > Uninstall.
+Uninstall closes Cute Cat, removes installed program files and shortcuts, and removes certificate trust owned by this installation. Your settings and focus history remain in %LOCALAPPDATA%\CuteCat for a later reinstall.
+
+In App guard, add an open app or browse to its .exe, choose reminder/paw-close and when it applies, then enable the guard. No apps are selected automatically. Save prompts remain under your control. You can pause the guard from the modern pet/tray menu.
+
+Your cat has bandana, bow tie, bell collar and flower accessories, several colours, activity levels, and optional idle naps. Idle naps wake with a stretch when you return; manual Sleep waits for Wake or interaction. Animations remain entirely code-driven.
+
+This local preview's signing certificate expires on @@EXPIRY@@. Install a newer signed build or remove this preview by then. No updater or automatic renewal is installed.
+
+This is a local development build. Browser feed protection remains future work.
