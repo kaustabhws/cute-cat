@@ -21,8 +21,11 @@ Executed against the 0.8 implementation:
 | Protected signing identity | CNG export policy `None`; SHA-256/RFC 3161 timestamps required |
 | Installer / update trust | 19 package checks passed: registered installation, valid app/helper/setup/uninstaller signatures, identical protected recovery copy; altered, wrong-version, unsigned and other-publisher installers rejected |
 | Uninstall / reinstall | Both completed; program directory and registration removed, exact user state retained, reinstall restored a verified recovery copy |
+| Cached installer repair | Same-version repair launched directly from protected Recovery completed successfully |
 
 An early installer check caught padded Inno metadata and a misleading zero exit after a post-install exception. The comparison now trims resource padding, recovery verification precedes file replacement, and unfinished setup returns a nonzero custom exit. Package verification also checks the actual installed state and logs, not only the exit code.
+
+The first hosted CI run passed build/core/allowance tests but correctly declined a fixture close button placed beyond its smaller screen. The fixture now fits the current working area instead of assuming a wide desktop. This was a fixture placement defect; off-monitor targeting remains refused by the app.
 
 Release installer: `CuteCat-0.8.0-Setup.exe`, **58,825,800 bytes**. SHA-256: `FDA435BC101B666BCE8E6923D796145DCD4D671DD988F321AF3B017214BB8B51`.
 

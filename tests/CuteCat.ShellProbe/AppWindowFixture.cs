@@ -12,7 +12,10 @@ internal static class AppWindowFixture
     {
         Directory.CreateDirectory(directory);
         var app=new Application{ShutdownMode=ShutdownMode.OnMainWindowClose};
-        var window=new Window{Title="Cute Cat app-rule fixture",Width=470,Height=290,Left=850,Top=160,
+        var area=SystemParameters.WorkArea;
+        double width=Math.Min(470,Math.Max(280,area.Width-80)),height=Math.Min(290,Math.Max(180,area.Height-80));
+        var window=new Window{Title="Cute Cat app-rule fixture",Width=width,Height=height,
+            Left=area.Right-width-40,Top=area.Top+Math.Min(160,Math.Max(20,area.Height-height-40)),
             Content=new TextBlock{Text="A test-owned window. No user documents are opened.",Margin=new Thickness(25),TextWrapping=TextWrapping.Wrap}};
         int requests=0;bool stopping=false;Window? prompt=null;
         window.Closing+=(_,e)=>

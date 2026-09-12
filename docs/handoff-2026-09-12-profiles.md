@@ -21,6 +21,8 @@ Release build: no warnings/errors. Core: 160 passed. Native: 79 passed in `artif
 
 Package: 19 checks passed in `artifacts/package-v080-final`, including signatures/timestamps, registry, protected recovery identity, tampering/different-publisher/version rejection, data-preserving uninstall and reinstall. An earlier package test found Inno's padded version metadata and a post-install exception that returned zero; both are corrected. The shipped setup SHA-256 is recorded in build status and the release checksum. Raw diagnostics and state backups stay ignored.
 
+Repair directly from the cached installer also passed. The first hosted CI run exposed the fixture's fixed window placement on a smaller monitor; it now uses the available work area. The production app correctly rejected the off-monitor button.
+
 Visuals: code-generated personality and light/dark native UI exports were reviewed at desktop size. Curated files are `docs/images/personality.png`, `profiles.png`, and `desktop-settings.png`. Exported frames/images are never runtime assets.
 
 ## Signing and operational limits
