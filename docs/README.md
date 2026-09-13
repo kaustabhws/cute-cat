@@ -1,6 +1,8 @@
 # Documentation map
 
-Current implementation: **0.9.1 appearance preview**. On 13 September 2026, after the local refinements, the user explicitly approved pushing the source and publishing the installer. The earlier publication hold is lifted for this release. Start with [appearance/theme](20-appearance-and-theme.md), [build status](build-status.md), and [profiles/reliability](19-profiles-and-reliability.md).
+Current release target: **1.0.0**, explicitly requested by the user together with the GitHub push and a normal release. The source includes the menu-opening correction. The current installer retains self-signed development trust; a standard GitHub release flag does not make it production-qualified. Start with [public-release guide](22-public-release-guide.md), [build status](build-status.md), and [menu lifecycle](21-menu-dismissal.md).
+
+The 0.9.3 menu correction is included in 1.0.0: 0.9.2's focus-failure guard hid both menus, so it was removed and a real menu window is used. Opening checks verify native visibility; simulated activation coverage and live outside-click checks are recorded separately. Publication of these changes is now authorized.
 
 The latest explicit user direction is a simple rounded, block-like cat drawn and animated entirely in code. This supersedes the previous hand-painted/sprite pipeline. The Azure image authorization remains available for future optional artwork; no endpoint or key is used by this build. Supplied images guide the degree of simplicity, not a contour or character to copy.
 
@@ -33,6 +35,8 @@ This checkout contained only documentation at task entry. Historical 0.2/0.3 imp
 | [Focus companion](18-focus-companion.md) | Explicit app rules, normal paw close, idle behavior, accessories, menus and privacy |
 | [Profiles and reliability](19-profiles-and-reliability.md) | Profiles/schedules, allowances/exceptions, monitor manners, personality, protected signing, verified updates/recovery |
 | [Appearance and theme](20-appearance-and-theme.md) | Local-only wardrobe, coat colours, periwinkle theme, native caption and migration |
+| [Menu dismissal](21-menu-dismissal.md) | Foreground ownership, outside clicks, submenu cleanup and RDP test limits |
+| [Production release guide](22-public-release-guide.md) | Public signing, UIAccess scope, trust migration, Windows acceptance and distribution |
 | [Current handoff](handoff-2026-09-12-customization.md) | 0.7 implementation, executed checks, accessory correction and release |
 
 ## Actual scope

@@ -93,7 +93,7 @@ public static partial class QualityChecks
             host.Menu.Show(new(host.Cat.WorkArea.Right-350,host.Cat.WorkArea.Bottom-500));await Task.Delay(180);
             if(host.Menu.View is { } menu)RenderElement(menu,Path.Combine(dir,"ui",theme+"-pet-menu.png"));
             Check(theme+" modern context menu opens",host.Menu.IsOpen);
-            if((host.Menu.View as ContextMenu)?.Items.OfType<MenuItem>().FirstOrDefault(i=>i.HasItems) is { } profiles)
+            if((host.Menu.View as ItemsControl)?.Items.OfType<MenuItem>().FirstOrDefault(i=>i.HasItems) is { } profiles)
             {
                 profiles.IsSubmenuOpen=true;await Task.Delay(120);profiles.ApplyTemplate();
                 Check(theme+" profile submenu opens",profiles.Template.FindName("PART_Popup",profiles) is System.Windows.Controls.Primitives.Popup{IsOpen:true});

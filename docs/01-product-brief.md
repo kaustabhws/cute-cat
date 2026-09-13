@@ -1,6 +1,6 @@
 # Product brief
 
-**Current 0.9.1 companion scope:** profiles and weekly schedules, app-specific normal-close/reminder rules with exceptions/allowances, desktop manners, procedural personality, a coat/hat/neckwear/collar wardrobe, native theme controls and signed preview update/recovery. The user explicitly deferred browser integration. Current implementation and measured coverage are in [build status](build-status.md); the browser-focused loop below remains future product direction.
+**Current 1.0.0 companion scope:** profiles and weekly schedules, app-specific normal-close/reminder rules with exceptions/allowances, desktop manners, procedural personality, a coat/hat/neckwear/collar wardrobe, native themes, corrected cat/tray menus and signed update/recovery. The user explicitly deferred browser integration. Current signing still uses a development identity; production requirements are in [the release guide](22-public-release-guide.md). Measured coverage is in [build status](build-status.md); the browser-focused loop below remains future product direction.
 
 Status: product direction, updated 12 September 2026. Latest user choices: a simple rounded cat drawn and smoothly animated entirely in code, a completely free app, and a small native companion. Working name: **Cute Cat**; public name remains open. The implementation milestone is companion movement and notification paw dismissal; see build status for measured coverage. The earlier hand-painted direction is superseded.
 

@@ -74,6 +74,16 @@
         </Border>
       </ControlTemplate></Setter.Value></Setter>
     </Style>
+    <Style x:Key="PetMenuStyle" TargetType="ItemsControl">
+      <Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="13"/><Setter Property="Foreground" Value="{DynamicResource Ink}"/>
+      <Setter Property="ItemsPanel"><Setter.Value><ItemsPanelTemplate><StackPanel Orientation="Vertical"/></ItemsPanelTemplate></Setter.Value></Setter>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ItemsControl">
+        <Border Background="{DynamicResource Paper}" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="14" Padding="7" Margin="8">
+          <Border.Effect><DropShadowEffect BlurRadius="18" ShadowDepth="3" Opacity="0.22"/></Border.Effect>
+          <ScrollViewer CanContentScroll="True" MaxHeight="{TemplateBinding MaxHeight}" VerticalScrollBarVisibility="Auto"><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle"/></ScrollViewer>
+        </Border>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
     <Style TargetType="MenuItem">
       <Setter Property="Foreground" Value="{DynamicResource Ink}"/><Setter Property="Padding" Value="10,8"/>
       <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="MenuItem">

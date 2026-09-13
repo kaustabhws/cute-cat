@@ -1,5 +1,11 @@
 # Product requirements
 
+**1.0.0 publication direction:** the user requested all current changes on GitHub and a normal release numbered 1.0.0, plus production-release guidance. Preserve existing functionality and truthfully disclose development signing, UIAccess scope and uncompleted desktop checks. The stable updater excludes draft/pre-release entries. Browser integration remains deferred; the public-release guide defines the current companion-only production work.
+
+**0.9.3 correction:** menu visibility is independent of foreground/capture success. Both cat and tray right-click paths must open a native visible menu, including when the main panel or cat is hidden and Windows refuses focus. Activation failures and opening transitions must not dismiss it. Preserve context-style submenus and existing outside-click/Escape/selection cleanup. The prior 0.9.2 failure guard violated this requirement.
+
+**0.9.2 menu follow-up:** an explicitly opened pet/tray menu must dismiss on outside clicks, activation of another window, Escape or leaf selection, release its mouse capture, and resume companion autonomy. A first Escape may close the current submenu; clicks inside a submenu must work. Old menu events must not close a replacement menu. Ordinary petting/dragging remain non-activating. No global input hooks/polling. Evidence and native test limits: [menu dismissal](21-menu-dismissal.md).
+
 **0.9.1 user update (13 September):** STYLE-02 requires real coat/custom RGB colours, separate hat/neckwear/collar slots with their own colours, a live tabbed wardrobe, pose-aligned accessories, and migration of old selections. UI-CHROME requires native caption colour matching the app or accent, with Windows default available. UI-PALETTE replaces green with charcoal/periwinkle and readable text in both themes. The final refinement removes the top-navigation click border and rounds text inputs. After local testing, the user explicitly approved GitHub source and installer publication. Acceptance and evidence: [appearance/theme](20-appearance-and-theme.md).
 
 **0.8 user-authorized additions:** the current requirements below supplement the 0.7 companion milestone; browser work remains deferred.

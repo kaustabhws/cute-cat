@@ -38,6 +38,12 @@ jobs:
       - name: Export procedural artwork
         shell: pwsh
         run: dotnet run --project tools/CuteCat.SetupArtwork -c Release -- artifacts/ci-art
+      - name: Menu opening regression
+        shell: pwsh
+        run: |
+          $qa = Join-Path $pwd 'artifacts/ci-menu-opening'
+          $process = Start-Process './src/CuteCat.App/bin/Release/net10.0-windows10.0.19041.0/CuteCat.exe' -ArgumentList @('--standard-user','--tray','--qa',('"'+$qa+'"'),'--menu-opening-checks') -WindowStyle Hidden -Wait -PassThru
+          exit $process.ExitCode
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -46,4 +52,6 @@ jobs:
             artifacts/ci-policy/policy-checks.json
             artifacts/ci-policy/failure.txt
             artifacts/ci-art/personality.png
+            artifacts/ci-menu-opening/menu-opening-checks.json
+            artifacts/ci-menu-opening/failure.txt
           if-no-files-found: ignore

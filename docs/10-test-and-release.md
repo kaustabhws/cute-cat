@@ -1,5 +1,7 @@
 # Test and release plan
 
+**Current 1.0.0 scope:** the user requested a public GitHub release of the native companion, with browser integration deferred. Browser/extension gates below are future scope. Selected app closing is explicitly authorized and must remain a normal close after verified paw contact, with save prompts/refusals untouched. Current release guidance and remaining production blockers (public signing, UIAccess intended use, clean-machine/live desktop verification) are in [22-public-release-guide.md](22-public-release-guide.md).
+
 ## Automated checks
 
 Core tests must cover countdown/pause/resume/end, focus vs break accounting, gap/suspend behavior, crash recovery, duplicate completion, invalid durations, bounded persistence, and malformed state recovery. Extension tests cover exact-host/path matching, lookalike hosts, normal YouTube pages, exceptions, revision/session changes, and safe state defaults. Protocol tests reject invalid/oversized lengths and unknown requests.

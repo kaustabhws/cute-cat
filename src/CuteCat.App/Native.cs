@@ -33,6 +33,8 @@ internal static class Native
     [DllImport("user32.dll",CharSet=CharSet.Unicode)] internal static extern int GetClassName(IntPtr hwnd,StringBuilder text,int max);
     [DllImport("user32.dll")] internal static extern uint GetWindowThreadProcessId(IntPtr hwnd,out uint process);
     [DllImport("user32.dll")] internal static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] internal static extern bool SetForegroundWindow(IntPtr window);
+    [DllImport("user32.dll")] internal static extern IntPtr GetCapture();
     [DllImport("user32.dll")] internal static extern uint GetDpiForWindow(IntPtr hwnd);
     [DllImport("user32.dll")] internal static extern IntPtr LoadCursor(IntPtr inst,IntPtr name);
     [DllImport("user32.dll")] internal static extern uint GetGuiResources(IntPtr process,uint flags);

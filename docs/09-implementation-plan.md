@@ -1,5 +1,11 @@
 # Implementation plan
 
+**Current task — 1.0.0:** publish all current code and the installer under version 1.0.0 as requested, verify CI/artifacts, and explain the remaining production-release steps. Keep development-trust/UIAccess limitations visible. Do not treat the version number or GitHub's normal-release flag as public-CA signing or completed desktop certification. The former local-only restriction on the menu corrections is lifted by this request. See [release guide](22-public-release-guide.md).
+
+**Current 0.9.3 task:** repair the menu-not-opening regression from 0.9.2 for both cat and hidden-tray entry points. A denied focus request must never suppress the menu. Use a real activatable menu window, verify native visibility without faking activation success, and keep dismissal/submenu checks separate. Install locally for user testing; 0.9.1 remains published.
+
+**Current 0.9.2 task:** fix the desktop cat menu remaining open after outside clicks. Use normal foreground/menu capture semantics and scoped cleanup; preserve non-activation for normal petting. Verify event paths locally, install the fix, and record any live-desktop verification blocked by RDP. See [menu contract](21-menu-dismissal.md). This request does not add a new release publication step.
+
 **Current 0.9.1 task:** publish the tested appearance/control changes and installer to the authorized GitHub repository. The user explicitly approved this on 13 September after the local title-bar, coat/wardrobe, palette, navigation and input refinements. That approval supersedes the earlier local-only hold. Preserve the tested installer and its checksum, exclude private artifacts/keys, and verify CI and release assets. See [appearance contract](20-appearance-and-theme.md).
 
 **Current 0.8 priority:** profiles/schedules, app exceptions and allowances, monitor-aware resting, personality, durable preview signing, verified updates/recovery and automated Windows checks. Browser integration is explicitly excluded by the user. Complete packaging and publish source/release to the authorized GitHub repository. Desktop checks unavailable under RDP may be documented for later; do not block delivery on them. See [contract](19-profiles-and-reliability.md).

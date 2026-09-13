@@ -9,14 +9,14 @@ Uninstall closes Cute Cat, removes installed program files and shortcuts, and re
 
 In App guard, add an open app or browse to its .exe, choose reminder/paw-close and when it applies, then enable the guard. No apps are selected automatically. Save prompts remain under your control. You can pause the guard from the modern pet/tray menu.
 
-Your cat has bandana, bow tie, bell collar and flower accessories, several colours, activity levels, and optional idle naps. Idle naps wake with a stretch when you return; manual Sleep waits for Wake or interaction. Animations remain entirely code-driven.
+Your cat has coat colours and a tabbed wardrobe with independent hats, neckwear and collars. It also has activity levels and optional idle naps. Idle naps wake with a stretch when you return; manual Sleep waits for Wake or interaction. Animations remain entirely code-driven.
 
 Use Profiles to choose Work, Study or Break, set activity and schedule weekly changes. Selecting a profile manually pauses schedules until you enable them again. The global app guard switch always stays under your control.
 
 Each app rule can have a grace period, a daily allowance and a temporary exception. Only selected-app foreground totals are stored locally; no titles or browsing timeline are recorded. Drag the cat to remember a spot on that monitor. Settings also offers optional focused-control avoidance.
 
-Settings > Updates & recovery checks GitHub for previews and verifies the installer before opening setup. Downloads and installation require your action. Setup retains this and the previous compatible signed installer in the Recovery folder for repair/rollback. This release establishes the recovery baseline; the older unsigned installer is not used for verified rollback.
+Settings > Updates & recovery checks GitHub for updates and verifies the installer before opening setup. Downloads and installation require your action. Setup retains compatible signed installers in the Recovery folder for repair/rollback. Unsigned or differently signed installers cannot be used for verified rollback.
 
-This preview's notification-access certificate expires on @@EXPIRY@@. Setup and its uninstaller are signed and timestamped with the same protected preview identity. It is not public publisher verification.
+This build's notification-access certificate expires on @@EXPIRY@@. Setup and its uninstaller are signed and timestamped with the same protected development identity. It is not public publisher verification.
 
-This is a local development build. Browser feed protection remains future work.
+Browser feed protection remains future work. Public-trust signing and a production review of UIAccess remain outstanding; see the repository's public-release guide.

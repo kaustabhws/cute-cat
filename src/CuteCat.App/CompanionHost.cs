@@ -55,6 +55,7 @@ public sealed class CompanionHost : IDisposable
     private readonly Forms.NotifyIcon _tray;
     private Forms.Screen _screen;
     private int _scanBusy;
+    private int _menuRequest;
     private bool _locked,_suspended,_fullscreen,_disposed,_appFullscreenOverride,_focusEligibility,_disconnected,_settled;
     private double _workingSince=double.NaN,_settleUntil,_lastAvoid;
     private (NotificationTarget Target,NotificationApproach Plan,double Until)? _notice;
@@ -80,12 +81,12 @@ public sealed class CompanionHost : IDisposable
         Cat.MoveTo(RestingPosition(),FrameClock.Now);
         Session.Restore(state.Session,FrameClock.Now);
         Surface.PointerDown+=Down;Surface.PointerMove+=Move;Surface.PointerUp+=Up;
-        Surface.CaptureLost+=LostCapture;Surface.ContextRequested+=point=>Menu.Show(point);
+        Surface.CaptureLost+=LostCapture;Surface.ContextRequested+=RequestMenu;
         Surface.DisplayChanged+=()=>Configure();
         _tray=new Forms.NotifyIcon{Text="Cute Cat · a little company",Visible=!qa,Icon=MakeIcon()};
         _tray.DoubleClick+=(_,_)=>OpenRequested?.Invoke();
         Menu=new PetMenu(this);
-        _tray.MouseUp+=(_,e)=>{if(e.Button==Forms.MouseButtons.Right){var point=Forms.Cursor.Position;Menu.Show(new(point.X,point.Y));}};
+        _tray.MouseUp+=TrayMouseUp;
         _clock=new(Application.Current.Dispatcher,OnFrame);
         _housekeeping=new DispatcherTimer(DispatcherPriority.Background){Interval=TimeSpan.FromMilliseconds(250)};
         _housekeeping.Tick+=Housekeeping;_housekeeping.Start();
@@ -101,6 +102,15 @@ public sealed class CompanionHost : IDisposable
         var pt=new Native.Point(screen.Bounds.Left+1,screen.Bounds.Top+1);
         IntPtr monitor=MonitorFromPoint(pt,2);
         return GetDpiForMonitor(monitor,0,out uint x,out _)==0 ? x/96d : 1;
+    }
+    internal void TrayMouseUp(object? sender,Forms.MouseEventArgs e)
+    {if(e.Button==Forms.MouseButtons.Right){var point=Forms.Cursor.Position;RequestMenu(new(point.X,point.Y));}}
+    private void RequestMenu(V2 point)
+    {
+        int request=++_menuRequest;
+        // Let the initiating mouse-up and tray flyout finish before opening new UI.
+        Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle,new Action(()=>
+        {if(!_disposed&&request==_menuRequest)Menu.Show(point);}));
     }
     [System.Runtime.InteropServices.DllImport("user32.dll")] private static extern IntPtr MonitorFromPoint(Native.Point point,uint flags);
     [System.Runtime.InteropServices.DllImport("shcore.dll")] private static extern int GetDpiForMonitor(IntPtr monitor,int type,out uint x,out uint y);

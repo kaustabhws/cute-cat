@@ -1,15 +1,15 @@
-Cute Cat — local Windows preview
+Cute Cat — signing and Windows notification access
 
 One original cat, drawn and animated entirely in code. No account, subscription, cloud service or runtime image generation is required.
 
 This setup installs Cute Cat for this PC and adds a Start menu shortcut and an entry in Windows Settings > Apps > Installed apps. The next page explains the Windows access needed to keep the cat above notifications.
 
-This is a signed preview build. Its notification-access certificate expires on @@EXPIRY@@. The reusable signing key stays in the developer's Windows key store; it is never included in this installer. This is preview trust, not a publicly verified publisher identity.
+This build uses a self-signed development identity. Its notification-access certificate expires on @@EXPIRY@@. The reusable signing key stays in the developer's Windows key store; it is never included in this installer. Installing on a new PC requires the explicit certificate-trust choice on the next page. A GitHub release or version number does not make this a publicly verified publisher identity.
 
-The app offers optional update checks through GitHub. It verifies a download's checksum and signing identity before opening setup. Downloads and installation require a user action. Setup retains verified installers for recovery; the first release establishes the recovery baseline.
+The app offers optional update checks through GitHub. It verifies a download's checksum and signing identity before opening setup. Downloads and installation require a user action. Setup retains compatible verified installers for recovery.
 
 App guard only responds to desktop apps you explicitly select. It requests normal window closing, leaving save prompts to you. Browser tab URL detection is not included.
 
 Your cat settings and focus history live in your Windows user profile. Reinstall and uninstall preserve them. The app's Settings page can clear focus history when you choose.
 
-Cute Cat is a working project name. This package is distributed as a preview, with broader desktop and account testing still pending.
+Cute Cat is a working project name. Broader desktop, account and accessibility testing remains pending. Public-trust signing and a production review of UIAccess are still required for a production-ready distribution.

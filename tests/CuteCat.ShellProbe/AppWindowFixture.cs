@@ -3,12 +3,13 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using System.Runtime.InteropServices;
 
 namespace CuteCat.ShellProbe;
 
 internal static class AppWindowFixture
 {
-    public static void Run(string directory,bool veto)
+    public static void Run(string directory,bool veto,int menuOwner=0)
     {
         Directory.CreateDirectory(directory);
         var app=new Application{ShutdownMode=ShutdownMode.OnMainWindowClose};
@@ -32,7 +33,8 @@ internal static class AppWindowFixture
         };
         var timer=new DispatcherTimer{Interval=TimeSpan.FromMilliseconds(100)};
         timer.Tick+=(_,_)=>{if(File.Exists(Path.Combine(directory,"quit"))){stopping=true;prompt?.Close();window.Close();}};timer.Start();
-        window.Loaded+=(_,_)=>{File.WriteAllText(Path.Combine(directory,"ready"),Environment.ProcessId.ToString());window.Activate();};
+        window.Loaded+=(_,_)=>{window.Activate();if(menuOwner>0)AllowSetForegroundWindow((uint)menuOwner);File.WriteAllText(Path.Combine(directory,"ready"),Environment.ProcessId.ToString());};
         app.Run(window);
     }
+    [DllImport("user32.dll")]private static extern bool AllowSetForegroundWindow(uint process);
 }

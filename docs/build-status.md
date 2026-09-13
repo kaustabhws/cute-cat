@@ -1,5 +1,29 @@
 # Current build status
 
+## 1.0.0 release target — user-authorized normal GitHub release
+
+The user requested all current changes and a release numbered 1.0.0, plus guidance for a production public release. Version 1.0.0 includes the 0.9.3 menu correction and uses neutral version wording in Updates; its update feed excludes draft/pre-release entries. State schema stays at 4. The GitHub release is requested as normal/Latest, while development-signing and UIAccess limitations remain explicitly disclosed.
+
+Pre-package checks on the 1.0.0 source: build with zero warnings/errors, 167 core checks, 10 native menu-opening checks, 19 separately simulated-activation menu lifecycle checks, and 12 appearance/caption checks passed. Evidence is local under `artifacts/v100-opening`, `artifacts/v100-lifecycle` and `artifacts/v100-appearance`. The final installer checksum and packaging/CI result belong with the release assets and notes. No new live outside-click, broad account/device/accessibility matrix or public-trust signing result is implied by these checks.
+
+The existing development certificate remains `93ECC442E6EC72D1238D6BCA2E8F80D9B01D88EE`. A public-trust signing identity, production installer/update trust migration, UIAccess intended-use review, and clean-machine desktop acceptance remain work for production qualification. See [the production guide](22-public-release-guide.md), checked against Microsoft/GitHub primary documentation on 13 September 2026.
+
+## 0.9.3 local menu opening correction
+
+Corrects the 0.9.2 regression reported by the user: activation failure must not hide the cat/tray menu. The menu now uses an activatable WPF window with context-style MenuBase items, deferred entry callbacks and best-effort activation/capture. Initial opening transitions do not dismiss it. Outside-capture, selection, Escape, deactivation and cancellation cleanup remain.
+
+Build passed with no warnings. Ten opening checks verified actual native menu visibility through both entry callbacks, including a hidden cat and refused focus requests. Nineteen simulated-activation lifecycle checks passed separately. Evidence: `artifacts/menu-v093-opening-final` and `artifacts/menu-v093-lifecycle-final`. Live outside-click testing remains an active-desktop check; no GitHub publication is included in this local correction. See [menu contract](21-menu-dismissal.md).
+
+Installed locally as 0.9.3. All 14 installer/signature/preservation checks passed (`artifacts/install-v093-local`). The installed UIAccess build passed the ten opening checks with both normal and tray-only startup (`artifacts/menu-v093-installed-opening`, `artifacts/menu-v093-installed-tray-start`) and all 19 simulated lifecycle checks (`artifacts/menu-v093-installed-lifecycle`). Installer: 58,841,320 bytes; SHA-256 `4E4CFB276CB587A00BBB7D84F61C3F3970D7E28C2D3EA77E4DFF12CEFBAE6C5D`. The prior 0.9.2 closing-on-failure test was incorrect and is superseded.
+
+## 0.9.2 local menu dismissal fix
+
+The explicitly opened cat/tray menu now establishes foreground ownership, closes on outside capture/deactivation/cancel/Escape/selection, and reliably releases capture and the cat's autonomy pause. Submenus and focus restoration are scoped to the current menu, including rapid replacement. Ordinary petting remains non-activating. No global input hooks or new monitoring were added.
+
+Build passed without warnings; 19 simulated-activation menu event checks passed (`artifacts/menu-v092-verified`). Real foreground activation was unavailable in this RDP session, so a native outside-click smoke check remains pending. See [menu contract](21-menu-dismissal.md) for exactly what was and was not tested. This is a local fix; published 0.9.1 is unchanged.
+
+Installed locally as 0.9.2 with the same approved signing identity; 14 installer/signature/preservation checks passed (`artifacts/install-v092-local`). The installed UIAccess build also passed all 19 simulated menu checks (`artifacts/menu-v092-installed-events`). Its native check likewise reported no foreground window (`artifacts/menu-v092-installed-native`), so that limitation is confirmed on the installed build too. Installer: 58,848,448 bytes; SHA-256 `6CCC99C811CF8E09B470A58A427A1B819750307879A6BF2D9B6CBD2B2C693271`. No push or release was performed.
+
 ## 0.9.1 preview — publication approved
 
 Removed the pointer-click outline from the top navigation while keeping its selected pill and a keyboard-only underline. All text inputs now have rounded corners, consistent padding and themed focus/caret/selection. The small minutes field was visually checked with `180` to avoid clipped text. Build passed without warnings; the existing 12 appearance checks passed and light/dark focused-navigation/input exports were inspected in `artifacts/controls-v091-final`. Core, state and cat behavior are unchanged from 0.9.0. The user explicitly approved the GitHub push and installer release on 13 September.

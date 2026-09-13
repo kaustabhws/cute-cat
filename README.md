@@ -2,13 +2,13 @@
 
 A free native Windows companion, drawn and animated continuously in C#. No sprite sheets, WebView, game engine or cloud service.
 
-**v0.9.1 preview** — Windows 11 x64.
+**v1.0.0** — Windows 11 x64.
 
 ## Install
 
-Download **CuteCat-0.9.1-Setup.exe** from [GitHub Releases](https://github.com/kaustabhws/cute-cat/releases/tag/v0.9.1). The wizard adds Start menu/desktop shortcuts and registers the app in **Settings → Apps → Installed apps**. Uninstall removes the program and owned certificate trust while preserving your settings and focus history.
+Download **CuteCat-1.0.0-Setup.exe** from [GitHub Releases](https://github.com/kaustabhws/cute-cat/releases/tag/v1.0.0). The wizard adds Start menu/desktop shortcuts and registers the app in **Settings → Apps → Installed apps**. Uninstall removes the program and owned certificate trust while preserving your settings and focus history.
 
-**Preview signing:** The app, installer and uninstaller are signed and timestamped with a reusable protected preview identity. This is not public publisher verification. To render above Windows notifications, the wizard asks to trust its certificate and enable UIAccess, which grants broader access to other apps’ controls. Read the [access details](docs/16-uiaccess-review.md) and [signing/update contract](docs/19-profiles-and-reliability.md) before installing.
+**Signing and readiness:** This 1.0.0 release still uses a protected self-signed development identity, not public publisher verification. The app, installer and uninstaller are signed and timestamped. To render above Windows notifications, the wizard asks to trust its certificate and enable UIAccess, which grants broader access to other apps’ controls. A normal GitHub release does not establish production readiness. Read the [access details](docs/16-uiaccess-review.md) and [production-release guide](docs/22-public-release-guide.md) before wider distribution.
 
 ## What it does
 
@@ -19,6 +19,7 @@ Download **CuteCat-0.9.1-Setup.exe** from [GitHub Releases](https://github.com/k
 - Leaves save prompts and close refusals to you. Never force-kills a process.
 - Dismisses supported Windows notifications after paw contact.
 - Provides focus/break timers, local settings, charcoal/periwinkle themes, configurable native title-bar colours, rounded inputs and themed pet/tray menus.
+- Keeps cat/tray menus visible even when Windows refuses focus, using a dedicated activatable menu window.
 - Switches between Work, Study and Break profiles, with independent rules, activity and weekly schedules.
 - Offers per-app temporary exceptions, close grace periods and daily allowances.
 - Remembers a resting spot per monitor, settles while you work, and optionally moves away from a focused control.
@@ -50,6 +51,7 @@ The core, native adapters and renderer live in `src`; deterministic and native f
 - [Profiles, privacy, updates and recovery](docs/19-profiles-and-reliability.md)
 - [Coat colours, wardrobe and native theme](docs/20-appearance-and-theme.md)
 - [Installer and uninstall contract](docs/17-windows-installer.md)
+- [Production release guide](docs/22-public-release-guide.md)
 - [Agent documentation map](docs/README.md)
 - [Research and dated sources](docs/research/03-sources.md)
 - [Third-party notices](docs/third-party-notices.md)

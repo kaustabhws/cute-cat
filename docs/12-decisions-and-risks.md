@@ -1,5 +1,15 @@
 # Decisions and risks
 
+## D30 — requested 1.0.0 GitHub release
+
+The user explicitly requested pushing all changes and publishing version 1.0.0, then explaining how to reach a production public release. Publish a normal GitHub release/Latest, with source and binary versions aligned; retain the current self-signed-development/UIAccess disclosures. This does not authorize inventing publisher credentials, silently importing new trust, choosing a source license or claiming assistive-technology eligibility. Stable update checks now skip draft/pre-release entries. Primary-source production guidance is in [22-public-release-guide.md](22-public-release-guide.md).
+
+## D29 — desktop menu ownership and dismissal
+
+**0.9.3 correction:** the user reported that 0.9.2 never showed the menu. Closing on refused activation was incorrect and is removed. Use an activatable WPF Window hosting MenuBase items, not activation of the non-activating cat or a focus-dependent popup. Opening/native visibility is tested with actual failures; foreground transitions remain separately simulated when RDP has no active desktop.
+
+Use temporary foreground ownership only for an explicit cat/tray menu request, with cleanup tied to that popup's native messages and WPF events. Preserve `WS_EX_NOACTIVATE` for ordinary petting. Do not implement global click hooks or polling to work around incorrect menu ownership. Simulated activation tests and live native tests are separate; RDP returned no foreground desktop during this fix. See [menu contract](21-menu-dismissal.md).
+
 ## D28 — local wardrobe and theme revision (13 September 2026)
 
 **Publication follow-up, 13 September:** after 0.9.1 was installed and checked locally, the user explicitly requested the source push and installer release. The hold below is now satisfied; publish the tested 0.9.1 preview to `kaustabhws/cute-cat`. This does not expand monitoring, signing trust or browser scope.

@@ -12,7 +12,7 @@ namespace CuteCat.App;
 internal sealed class ReleaseUpdates
 {
     private static readonly HttpClient Client=CreateClient();
-    public string Status { get; private set; }="Check for a new preview when you're ready.";
+    public string Status { get; private set; }="Check for updates when you're ready.";
     public UpdatePackage? Available { get; private set; }
     public string? Downloaded { get; private set; }
     public bool Busy { get; private set; }
@@ -21,12 +21,12 @@ internal sealed class ReleaseUpdates
     {var client=new HttpClient{Timeout=TimeSpan.FromMinutes(3)};client.DefaultRequestHeaders.UserAgent.ParseAdd("CuteCat/"+BuildInfo.Version);return client;}
     public async Task Check()
     {
-        if(Busy)return;Busy=true;Available=null;Downloaded=null;Status="Checking GitHub for a newer preview…";Changed?.Invoke();
+        if(Busy)return;Busy=true;Available=null;Downloaded=null;Status="Checking GitHub for updates…";Changed?.Invoke();
         try
         {
             byte[] bytes=await ReadLimited(new Uri($"https://api.github.com/repos/{UpdatePolicy.Repository}/releases?per_page=20"),1024*1024);
             using var json=JsonDocument.Parse(bytes);
-            foreach(var release in json.RootElement.EnumerateArray().Where(r=>!r.GetProperty("draft").GetBoolean())
+            foreach(var release in json.RootElement.EnumerateArray().Where(r=>!r.GetProperty("draft").GetBoolean()&&!r.GetProperty("prerelease").GetBoolean())
                 .Select(r=>(release:r,tag:r.GetProperty("tag_name").GetString()??""))
                 .Where(r=>r.tag.StartsWith('v')&&UpdatePolicy.TryVersion(r.tag[1..],out _))
                 .OrderByDescending(r=>Version.Parse(r.tag[1..])))
@@ -42,7 +42,7 @@ internal sealed class ReleaseUpdates
                 if(package is null||package.Version!=version||!UpdatePolicy.Valid(package,BuildInfo.Version)||exe.GetProperty("browser_download_url").GetString()!=package.Url||exe.GetProperty("size").GetInt64()!=package.Size)continue;
                 Available=package;break;
             }
-            Status=Available is null?"You're on the newest compatible preview.":$"Preview {Available.Version} is available. Download it to verify the installer.";
+            Status=Available is null?"You're on the newest compatible version.":$"Version {Available.Version} is available. Download it to verify the installer.";
         }
         catch(Exception e)when(Expected(e)){Status="Could not check for updates. Try again when GitHub is reachable.";}
         finally{Busy=false;Changed?.Invoke();}
@@ -74,7 +74,7 @@ internal sealed class ReleaseUpdates
                 if(!string.Equals(hash,package.Sha256,StringComparison.OrdinalIgnoreCase)||!InstallerSignature.SamePublisher(part,Environment.ProcessPath!,package.Version))throw new CryptographicException();
             }
             string destination=Path.Combine(folder,UpdatePolicy.FileName(package.Version));File.Move(part,destination,true);Downloaded=destination;
-            Status=$"Preview {package.Version} is verified. Open setup to review and install it.";
+            Status=$"Version {package.Version} is verified. Open setup to review and install it.";
         }
         catch(Exception e)when(Expected(e)){Status="The download could not be verified. Nothing was installed. A publisher change needs a separate manual review.";}
         finally{try{if(File.Exists(part))File.Delete(part);}catch(IOException){}Busy=false;Changed?.Invoke();}
