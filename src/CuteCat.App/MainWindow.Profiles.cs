@@ -30,6 +30,9 @@ public partial class MainWindow
         left.Children.Add(Check("Quiet company during focus",profile.QuietDuringFocus,v=>_host.EditProfile(profile.Id,p=>p with{QuietDuringFocus=v})));
         left.Children.Add(Choice("Profile activity",new[]{(ActivityLevel.Calm,"Calm · gentle company"),(ActivityLevel.Balanced,"Curious · a little variety"),(ActivityLevel.Playful,"Playful · more little adventures")},profile.Activity,v=>_host.EditProfile(profile.Id,p=>p with{Activity=v})));
         left.Children.Add(Button("Edit this profile's app rules",()=>Navigate("App guard"),true));
+        left.Children.Add(Text("An outfit for this profile",12,"Muted",8));
+        left.Children.Add(Choice("Profile outfit",new[]{("","Use my everyday look")}.Concat(_host.Settings.Outfits.Select(o=>(o.Id,o.Name))).ToArray(),profile.OutfitId??"",id=>_host.EditProfile(profile.Id,p=>p with{OutfitId=id.Length==0?null:id})));
+        left.Children.Add(Text("Save a look in Your cat → Outfits first. Switching profiles never overwrites it.",12,"Muted",12));
         var copy=Button("Duplicate profile",()=>
         {
             if(_host.Settings.Profiles.Count>=8)return;

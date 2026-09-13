@@ -35,7 +35,7 @@ public static partial class QualityChecks
         hex.Text="invalid";Descendants<Button>(window).First(b=>b.Content?.ToString()=="Use colour").RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
         Check("invalid custom colour leaves outfit unchanged",host.Settings.Appearance?.CollarColor=="#FF9020");
         await Task.Delay(200);var restored=new StateStore(host.Store.DirectoryPath).Load();
-        Check("outfit and colours survive state reload",restored.Schema==4&&restored.Settings.Appearance==host.Settings.Appearance);
+        Check("outfit and colours survive state reload",restored.Schema==5&&restored.Settings.Appearance==host.Settings.Appearance);
         foreach(string theme in new[]{"Light","Dark"})
         {
             window.SetTheme(theme);window.UpdateLayout();
@@ -69,8 +69,8 @@ public static partial class QualityChecks
         int reset=ThemeChrome.Apply(window,"Windows",true);await Task.Delay(100);var systemCaption=CaptureOwnWindow(window,Path.Combine(dir,"windows-native-window.png"));
         Check("Windows title bar resets colour override",reset==0&&systemCaption.HasValue&&systemCaption!=accentCaption);
         host.Update(host.Settings with{TitleBarStyle="Theme"});window.SetTheme("Dark");
-        window.Width=780;window.Height=620;window.UpdateLayout();RenderWindow(window,Path.Combine(dir,"ui","minimum-wardrobe.png"));
-        Check("all wardrobe categories remain available at minimum size",tabs.Items.Count==5&&tabs.ActualWidth>300);
+        window.Width=780;window.Height=620;window.UpdateLayout();await Task.Delay(250);RenderWindow(window,Path.Combine(dir,"ui","minimum-wardrobe.png"));
+        Check("all wardrobe categories remain available at minimum size",tabs.Items.Count==6&&tabs.ActualWidth>300);
         ExportWardrobe(dir);
         File.WriteAllText(Path.Combine(dir,"appearance-checks.json"),JsonSerializer.Serialize(new{version=BuildInfo.Version,checks=Checks},new JsonSerializerOptions{WriteIndented=true}));
     }

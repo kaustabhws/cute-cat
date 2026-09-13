@@ -2,13 +2,21 @@
 
 A free native Windows companion, drawn and animated continuously in C#. No sprite sheets, WebView, game engine or cloud service.
 
-**v1.0.0** — Windows 11 x64.
+**v1.1.1** — Windows 11 x64.
 
 ## Install
 
-Download **CuteCat-1.0.0-Setup.exe** from [GitHub Releases](https://github.com/kaustabhws/cute-cat/releases/tag/v1.0.0). The wizard adds Start menu/desktop shortcuts and registers the app in **Settings → Apps → Installed apps**. Uninstall removes the program and owned certificate trust while preserving your settings and focus history.
+Download **CuteCat-1.1.1-Setup.exe** from [GitHub Releases](https://github.com/kaustabhws/cute-cat/releases/tag/v1.1.1). The wizard adds Start menu/desktop shortcuts and registers the app in **Settings → Apps → Installed apps**. Uninstall removes the program and owned certificate trust while preserving your settings and focus history.
 
-**Signing and readiness:** This 1.0.0 release still uses a protected self-signed development identity, not public publisher verification. The app, installer and uninstaller are signed and timestamped. To render above Windows notifications, the wizard asks to trust its certificate and enable UIAccess, which grants broader access to other apps’ controls. A normal GitHub release does not establish production readiness. Read the [access details](docs/16-uiaccess-review.md) and [production-release guide](docs/22-public-release-guide.md) before wider distribution.
+**Signing and readiness:** This release still uses a protected self-signed development identity, not public publisher verification. The app, installer and uninstaller are signed and timestamped. To render above Windows notifications, the wizard asks to trust its certificate and enable UIAccess, which grants broader access to other apps’ controls. A normal GitHub release does not establish production readiness. Read the [access details](docs/16-uiaccess-review.md) and [production-release guide](docs/22-public-release-guide.md) before wider distribution.
+
+## New in 1.1.1
+
+Smoother toggles and maximize/restore reflow, quicker wardrobe navigation, background settings saves, and desktop shortcuts that reopen the running app. New customization includes coat patterns, saved/profile-linked outfits and optional purring. Grace countdowns, break reminders, troubleshooting and reviewed settings backups are also included.
+
+**Startup change:** the first normal 1.1.1 launch enables Start with Windows, including after an upgrade. You can turn it off in Settings; subsequent choices are remembered.
+
+See the [release notes](docs/releases/v1.1.1.md) and [measured validation](docs/24-ui-responsiveness.md).
 
 ## What it does
 
@@ -49,6 +57,8 @@ The core, native adapters and renderer live in `src`; deterministic and native f
 - [Build status and verification](docs/build-status.md)
 - [Focus companion/customization contract](docs/18-focus-companion.md)
 - [Profiles, privacy, updates and recovery](docs/19-profiles-and-reliability.md)
+- [Companion extras and settings backups](docs/23-companion-extras.md)
+- [UI responsiveness and startup](docs/24-ui-responsiveness.md)
 - [Coat colours, wardrobe and native theme](docs/20-appearance-and-theme.md)
 - [Installer and uninstall contract](docs/17-windows-installer.md)
 - [Production release guide](docs/22-public-release-guide.md)

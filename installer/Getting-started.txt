@@ -2,7 +2,7 @@ Cute Cat
 
 Open Cute Cat from the Start menu or desktop shortcut. Click the cat to greet it, drag to move it, or right-click for its menu. Closing the control window keeps the cat in the tray; choose Quit to stop it.
 
-In Quiet desktop, enable the optional Windows notification paw helper. Reduced motion, a locked desktop and full-screen suppression can pause it. This installer preserves existing preferences and does not enable Windows startup automatically.
+In Quiet desktop, enable the optional Windows notification paw helper. Reduced motion, a locked desktop and full-screen suppression can pause it. Your first normal launch applies the new startup-on default. The cat starts quietly with Windows; turn this off in Settings if desired. Later opt-outs are remembered.
 
 To uninstall: Settings > Apps > Installed apps > Cute Cat > Uninstall.
 Uninstall closes Cute Cat, removes installed program files and shortcuts, and removes certificate trust owned by this installation. Your settings and focus history remain in %LOCALAPPDATA%\CuteCat for a later reinstall.

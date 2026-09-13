@@ -100,11 +100,14 @@ public static partial class QualityChecks
                 profiles.IsSubmenuOpen=false;
             }
             host.Menu.Close();
+            Check(theme+" menu close releases autonomy",!host.Menu.IsOpen&&!host.Cat.AutonomyPaused,new{host.Menu.OpenCount,host.Menu.CloseCount,host.Menu.IsOpen,host.Cat.AutonomyPaused});
         }
         window.SetTheme("Light");window.Navigate("Focus");
         window.Width=780;window.Height=620;window.Navigate("Your cat");window.UpdateLayout();
         RenderWindow(window,Path.Combine(dir,"ui","Light-minimum-size.png"));
         window.Width=900;window.Height=700;window.Navigate("Focus");
+        await Task.Delay(250);host.Menu.Close();
+        Check("pointer fixture begins with the menu dismissed",!host.Menu.IsOpen&&!host.Cat.AutonomyPaused,new{host.Menu.OpenCount,host.Menu.CloseCount});
         var buttons=FindButtons(window).ToList();
         var start=buttons.First(b=>b.Content?.ToString()=="Start focusing");start.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Check("native focus start button works",host.Session.Status==SessionStatus.Running);
@@ -113,7 +116,7 @@ public static partial class QualityChecks
         buttons.First(b=>b.Content?.ToString()=="End session").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Check("native end button works",host.Session.Status==SessionStatus.Ready);
         var origin=host.Cat.Position;host.Down(origin);host.Up(origin);await Task.Delay(1750);
-        Check("tap resumes walking or a required turn",host.Cat.IsTravelling&&host.Cat.Action is CatAction.Walk or CatAction.Turn);
+        Check("tap resumes walking or a required turn",host.Cat.IsTravelling&&host.Cat.Action is CatAction.Walk or CatAction.Turn,new{host.Menu.OpenCount,host.Menu.CloseCount,host.Menu.IsOpen,host.Cat.AutonomyPaused});
         host.Down(host.Cat.Position);host.Move(host.Cat.Position+new V2(-35,-35));
         Check("drag pose active",host.Cat.Action==CatAction.Drag);
         host.Up(host.Cat.Position);await Task.Delay(900);

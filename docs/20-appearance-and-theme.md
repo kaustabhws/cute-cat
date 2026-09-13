@@ -1,5 +1,7 @@
 # Appearance and theme — 0.9.1 preview
 
+**1.1.0 extension:** Coat now includes procedural Solid/Tabby/Tuxedo/Calico markings with a separate colour. The sixth wardrobe tab saves up to 24 complete outfits; Profiles can link one. Editing a linked look makes an everyday copy, preserving the saved outfit. See [extras contract](23-companion-extras.md).
+
 13 September 2026 user scope: theme the white native title bar, fix cat coat colour, build proper tabbed customization with hats/bandanas/collars, and replace the green UI palette. Work was first installed locally; after the 0.9.1 navigation/input refinements, the user explicitly approved pushing the source and publishing the tested installer. The earlier publication hold is lifted for 0.9.1.
 
 ## User-facing behavior

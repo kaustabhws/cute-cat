@@ -9,12 +9,18 @@ public sealed record Preferences
     public string Theme { get; init; }="Light";
     public string TitleBarStyle { get; init; }="Theme";
     public PetAppearance? Appearance { get; init; }
+    public List<SavedOutfit> Outfits { get; init; }=[];
+    public bool ShowGraceCountdown { get; init; }=true;
+    public bool Purrs { get; init; }
+    public bool BreakCues { get; init; }
+    public int BreakCueMinutes { get; init; }=45;
     public bool Quiet { get; init; }
     public bool ReducedMotion { get; init; }
     public bool FollowWindowsMotion { get; init; }
     public bool Notifications { get; init; }
     public bool Sounds { get; init; }
-    public bool Startup { get; init; }
+    public bool Startup { get; init; }=true;
+    public bool StartupInitialized { get; init; }
     public bool CatVisible { get; init; }=true;
     public bool IdleNaps { get; init; }=true;
     public int IdleMinutes { get; init; }=3;
@@ -38,7 +44,7 @@ public sealed record Preferences
 }
 public sealed record AppState
 {
-    public int Schema { get; init; }=4;
+    public int Schema { get; init; }=5;
     public Preferences Settings { get; init; }=new();
     public SessionSnapshot Session { get; init; }=new();
     public List<FocusRecord> History { get; init; }=[];
@@ -75,10 +81,11 @@ public sealed class StateStore(string directory)
                 ReadOnly=true;Notice="This settings format is not recognized. The original file is preserved; changes will not be saved.";return new();
             }
             var state=JsonSerializer.Deserialize<AppState>(json,Options)??throw new JsonException();
-            if(state.Schema is not (1 or 2 or 3 or 4)) { ReadOnly=true;Notice="These settings belong to a different app version. The original file is preserved; changes will not be saved.";return new(); }
+            if(state.Schema is not (1 or 2 or 3 or 4 or 5)) { ReadOnly=true;Notice="These settings belong to a different app version. The original file is preserved; changes will not be saved.";return new(); }
             if(state.Schema==1&&!File.Exists(StatePath+".schema1.json"))File.Copy(StatePath,StatePath+".schema1.json");
             if(state.Schema==2&&!File.Exists(StatePath+".schema2.json"))File.Copy(StatePath,StatePath+".schema2.json");
             if(state.Schema==3&&!File.Exists(StatePath+".schema3.json"))File.Copy(StatePath,StatePath+".schema3.json");
+            if(state.Schema==4&&!File.Exists(StatePath+".schema4.json"))File.Copy(StatePath,StatePath+".schema4.json");
             return Normalize(state);
         }
         catch(Exception e) when(e is JsonException or IOException or UnauthorizedAccessException or ArgumentException)
@@ -142,17 +149,21 @@ public sealed class StateStore(string directory)
         var p=state.Settings??new();
         string name=p.Nickname?.Trim()??"Pip";
         if(name.Length==0)name="Pip";
+        var outfits=(p.Outfits??[]).Where(o=>o is not null&&OutfitPolicy.ValidId(o.Id)&&o.Appearance is not null).Take(24)
+            .Select(o=>o with{Name=OutfitPolicy.Name(o.Name),Appearance=o.Appearance.Normalize()}).DistinctBy(o=>o.Id,StringComparer.Ordinal).ToList();
         var rules=NormalizeRules(p.AppRules??[]);
         var profiles=(p.Profiles??[]).Where(x=>x is not null&&!string.IsNullOrWhiteSpace(x.Id)).Take(8).Select(x=>x with
         {
             Id=x.Id[..Math.Min(64,x.Id.Length)],Name=string.IsNullOrWhiteSpace(x.Name)?"Profile":x.Name.Trim()[..Math.Min(32,x.Name.Trim().Length)],
             Rules=NormalizeRules(x.Rules??[]),Activity=Enum.IsDefined(x.Activity)?x.Activity:ActivityLevel.Balanced,
+            OutfitId=outfits.Any(o=>o.Id==x.OutfitId)?x.OutfitId:null,
             Schedule=(x.Schedule??new()) with{Days=(x.Schedule?.Days??31)&127,StartMinute=Math.Clamp(x.Schedule?.StartMinute??540,0,1439),EndMinute=Math.Clamp(x.Schedule?.EndMinute??1020,0,1439),Priority=Math.Clamp(x.Schedule?.Priority??0,0,100)}
         }).DistinctBy(x=>x.Id,StringComparer.Ordinal).ToList();
         if(profiles.Count==0)profiles=ProfilePolicy.Defaults(rules,Enum.IsDefined(p.Activity)?p.Activity:ActivityLevel.Balanced);
         var active=profiles.FirstOrDefault(x=>x.Id==p.ActiveProfileId)??profiles[0];
         var today=DateOnly.FromDateTime(DateTime.Today);
-        return state with { Schema=4,Settings=p with { Nickname=name[..Math.Min(24,name.Length)],Size=p.Size is 96 or 128 or 160?p.Size:128,
+        return state with { Schema=5,Settings=p with { Nickname=name[..Math.Min(24,name.Length)],Size=p.Size is 96 or 128 or 160?p.Size:128,
+            Outfits=outfits,BreakCueMinutes=Math.Clamp(p.BreakCueMinutes,15,120),
             Appearance=(p.Appearance??PetAppearance.FromLegacy(p.Accessory,p.AccessoryColor)).Normalize(),
             TitleBarStyle=p.TitleBarStyle is "Theme" or "Accent" or "Windows"?p.TitleBarStyle:"Theme",
             IdleMinutes=Math.Clamp(p.IdleMinutes,1,30),

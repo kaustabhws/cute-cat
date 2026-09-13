@@ -5,10 +5,14 @@ namespace CuteCat.Core;
 public enum CatHat { None, Beanie, Beret, Sunhat, PartyHat, Flower }
 public enum CatNeckwear { None, Bandana, BowTie, Scarf }
 public enum CatCollar { None, Classic, Bell, Heart }
+public enum CoatPattern { Solid, Tabby, Tuxedo, Calico }
+public sealed record SavedOutfit(string Id,string Name,PetAppearance Appearance);
 public sealed record PetAppearance
 {
     public const string Oat="#FCF0D5",Sage="#95B99B";
     public string CoatColor { get; init; }=Oat;
+    public CoatPattern Pattern { get; init; }
+    public string PatternColor { get; init; }="#956950";
     public CatHat Hat { get; init; }
     public string HatColor { get; init; }=Sage;
     public CatNeckwear Neckwear { get; init; }
@@ -16,7 +20,7 @@ public sealed record PetAppearance
     public CatCollar Collar { get; init; }
     public string CollarColor { get; init; }=Sage;
     public static PetAppearance Default { get; }=new();
-    public PetAppearance Normalize()=>this with{CoatColor=Color(CoatColor,Oat),HatColor=Color(HatColor,Sage),NeckwearColor=Color(NeckwearColor,Sage),CollarColor=Color(CollarColor,Sage),
+    public PetAppearance Normalize()=>this with{CoatColor=Color(CoatColor,Oat),Pattern=Enum.IsDefined(Pattern)?Pattern:CoatPattern.Solid,PatternColor=Color(PatternColor,"#956950"),HatColor=Color(HatColor,Sage),NeckwearColor=Color(NeckwearColor,Sage),CollarColor=Color(CollarColor,Sage),
         Hat=Enum.IsDefined(Hat)?Hat:CatHat.None,Neckwear=Enum.IsDefined(Neckwear)?Neckwear:CatNeckwear.None,Collar=Enum.IsDefined(Collar)?Collar:CatCollar.None};
     public static bool IsColor(string? value)=>value is {Length:7}&&value[0]=='#'&&uint.TryParse(value.AsSpan(1),NumberStyles.AllowHexSpecifier,CultureInfo.InvariantCulture,out _);
     public static string Color(string? value,string fallback)=>IsColor(value)?value!.ToUpperInvariant():fallback;

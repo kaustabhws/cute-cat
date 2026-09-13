@@ -14,7 +14,7 @@ public partial class MainWindow : Window
     private readonly CatPreview _preview=new();
     private readonly Dictionary<string,Button> _tabs=[];
     private TextBlock? _timer,_sessionLabel,_summary,_notificationLabel,_catLabel,_testLabel,_guardLabel;
-    private Button? _primary,_end;
+    private Button? _primary,_end,_backToFocus;
     private int _minutes=25;
     private double _lastPreview;
     private string _current="Focus";
@@ -24,7 +24,7 @@ public partial class MainWindow : Window
     private bool _darkTheme;
     public MainWindow(CompanionHost host)
     {
-        InitializeComponent();_host=host;
+        InitializeComponent();_host=host;SetupMotion();
         _updates.Changed+=()=>_updateRefresh?.Invoke();
         if(host.Settings.CheckUpdatesAutomatically&&!host.IsTest)_=_updates.Check();
         foreach(string name in new[]{"Focus","Profiles","Your cat","App guard","Quiet desktop","Settings"})
@@ -32,21 +32,21 @@ public partial class MainWindow : Window
         SetTheme(_host.Settings.Theme);Navigate("Focus");
         SourceInitialized+=(_,_)=>ApplyTitleBar(this);
         SystemEvents.UserPreferenceChanged+=WindowsAppearanceChanged;
-        host.Frame+=UpdatePreview;host.Changed+=Refresh;
+        host.Frame+=UpdatePreview;host.Changed+=RequestRefresh;
         Closing+=OnClosing;
         IsVisibleChanged+=(_,_)=>{if(IsVisible){_lastPreview=0;Refresh();}};
-        Closed+=(_,_)=>{host.Frame-=UpdatePreview;host.Changed-=Refresh;SystemEvents.UserPreferenceChanged-=WindowsAppearanceChanged;_preview.Dispose();};
+        Closed+=(_,_)=>{host.Frame-=UpdatePreview;host.Changed-=RequestRefresh;SystemEvents.UserPreferenceChanged-=WindowsAppearanceChanged;_preview.Dispose();};
     }
     private void OnClosing(object? sender,CancelEventArgs e) { e.Cancel=true;Hide(); }
     public void Navigate(string name)
     {
         if(_preview.Parent is Panel old)old.Children.Remove(_preview);
         if(_preview.Parent is Border border)border.Child=null;
-        _current=name;_updateRefresh=null;_appearanceViews.Clear();_wardrobeLook=null;_displayProfile=_host.CurrentProfile.Id;_usageLabels.Clear();Page.Children.Clear();Page.ColumnDefinitions.Clear();Page.RowDefinitions.Clear();
-        _timer=null;_sessionLabel=null;_summary=null;_notificationLabel=null;_primary=null;_end=null;_catLabel=null;_testLabel=null;_guardLabel=null;
+        _current=name;_updateRefresh=null;_toolsRefresh=null;_appearanceViews.Clear();_wardrobeLook=null;_displayProfile=_host.CurrentProfile.Id;_usageLabels.Clear();Page.Children.Clear();Page.ColumnDefinitions.Clear();Page.RowDefinitions.Clear();
+        _timer=null;_sessionLabel=null;_summary=null;_notificationLabel=null;_primary=null;_end=null;_backToFocus=null;_catLabel=null;_testLabel=null;_guardLabel=null;
         foreach(var (key,button) in _tabs)button.SetResourceReference(BackgroundProperty,key==name?"AccentSoft":"Paper");
-        switch(name){case "Focus":FocusPage();break;case "Profiles":ProfilesPage();break;case "Your cat":CatPage();break;case "App guard":AppsPage();break;case "Quiet desktop":NotificationsPage();break;case "Updates":UpdatesPage();break;default:SettingsPage();break;}
-        Refresh();_lastPreview=0;UpdatePreview(FrameClock.Now);
+        switch(name){case "Focus":FocusPage();break;case "Profiles":ProfilesPage();break;case "Your cat":CatPage();break;case "App guard":AppsPage();break;case "Quiet desktop":NotificationsPage();break;case "Updates":UpdatesPage();break;case "Troubleshooting":TroubleshootingPage();break;case "Backup":BackupPage();break;default:SettingsPage();break;}
+        Refresh();_lastPreview=0;_previewOnScreen=true;UpdatePreview(FrameClock.Now);
     }
     private static TextBlock Text(string text,double size=14,string color="Ink",double bottom=0)
     {var t=new TextBlock{Text=text,FontSize=size,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,bottom)};t.SetResourceReference(TextBlock.ForegroundProperty,color);return t;}
@@ -55,7 +55,7 @@ public partial class MainWindow : Window
     private static Button Button(string label,Action action,bool primary=false)
     {var b=new Button{Content=label};if(primary)b.SetResourceReference(StyleProperty,"Primary");b.Click+=(_,_)=>action();return b;}
     private static CheckBox Check(string label,bool value,Action<bool> action)
-    {var c=new CheckBox{Content=label,IsChecked=value};c.Click+=(_,_)=>action(c.IsChecked==true);return c;}
+    {var c=new CheckBox{Content=label,IsChecked=value};void Changed(object sender,RoutedEventArgs e){if(ReferenceEquals(e.OriginalSource,c))action(c.IsChecked==true);}c.Checked+=Changed;c.Unchecked+=Changed;return c;}
     private static ComboBox Choice<T>(string name,(T value,string label)[] choices,T selected,Action<T> change)
     {
         var combo=new ComboBox{Margin=new Thickness(0,0,0,12)};
@@ -90,6 +90,7 @@ public partial class MainWindow : Window
         _primary=Button("Start focusing",()=>
         {
             double now=FrameClock.Now;
+            if(_host.Session.Status==SessionStatus.Completed&&_host.Session.CanReturnToFocus){_host.BackToFocus();return;}
             if(_host.Session.Status==SessionStatus.Running)_host.Session.Pause(now);
             else if(_host.Session.Status==SessionStatus.Paused)_host.Session.Resume(now);
             else {if(int.TryParse(custom.Text,out int m)&&m>=5&&m<=180)_minutes=m;_host.Session.Start(_minutes,now);}
@@ -97,7 +98,10 @@ public partial class MainWindow : Window
         },true);
         _end=Button("End session",()=>{_host.Session.End();_host.Configure();_host.Save();Refresh();});
         left.Children.Add(Row(_primary,_end));
-        left.Children.Add(Button("Take a 5-minute break",()=>{if(_host.Session.Status is SessionStatus.Running or SessionStatus.Paused)_host.Session.End();_host.Session.Start(5,FrameClock.Now,true);_host.Configure();_host.Save();Refresh();}));
+        _backToFocus=Button("Back to focus",_host.BackToFocus);left.Children.Add(Row(Button("Take a 5-minute break",_host.TakeBreak),_backToFocus));
+        left.Children.Add(Check("Gentle stretch & water reminders",_host.Settings.BreakCues,v=>_host.Update(_host.Settings with{BreakCues=v})));
+        left.Children.Add(Choice("Break reminder interval",new[]{(15,"Every 15 minutes of attended focus"),(30,"Every 30 minutes of attended focus"),(45,"Every 45 minutes of attended focus"),(60,"Every hour of attended focus"),(90,"Every 90 minutes of attended focus"),(120,"Every 2 hours of attended focus")},_host.Settings.BreakCueMinutes,v=>_host.Update(_host.Settings with{BreakCueMinutes=v})));
+        left.Children.Add(Text("Reminders are optional and fade away. Breaks preserve your current focus progress; only you choose when to resume.",12,"Muted",12));
         _summary=Text("",12,"Muted");_summary.Margin=new Thickness(0,23,0,0);left.Children.Add(_summary);
         PreviewCard(right,"Your desk companion","A calm little presence, just for you.");
         right.Children.Add(Text("A companion, at your pace.",16,"Ink",8));
@@ -128,6 +132,8 @@ public partial class MainWindow : Window
         string profileId=_host.CurrentProfile.Id;
         stack.Children.Add(Text("Rules for "+_host.CurrentProfile.Name+" · change profiles from the Profiles page",12,"Muted",12));
         stack.Children.Add(Check("Enable app guard",_host.Settings.AppGuard,v=>_host.Update(_host.Settings with{AppGuard=v})));
+        stack.Children.Add(Check("Show the grace countdown beside my cat",_host.Settings.ShowGraceCountdown,v=>_host.Update(_host.Settings with{ShowGraceCountdown=v})));
+        stack.Children.Add(Text("Set a grace period below to see a countdown with Allow 5 minutes. Zero seconds keeps the immediate paw response.",12,"Muted",10));
         _guardLabel=Text(_host.AppGuardStatus,12,"Muted",14);stack.Children.Add(_guardLabel);
         stack.Children.Add(Row(Button("Add an app",AddAppRule,true),Button("Pause for 10 minutes",()=>_host.PauseGuard(10)),Button("Resume",()=>_host.PauseGuard(0))));
         if(_host.CurrentProfile.Rules.Count==0)
@@ -207,6 +213,8 @@ public partial class MainWindow : Window
         right.Children.Add(Text("No account. No subscription.",20,"Ink",12));right.Children.Add(Text("Your settings and recent focus sessions stay in your Windows profile. There is no cloud service or image generator running behind your cat.",14,"Muted",22));
         right.Children.Add(Text("Cute Cat · "+BuildInfo.Version,13,"Ink",8));right.Children.Add(Text("Original vector artwork and continuous animation. Native Windows controls. Completely free.",13,"Muted",20));
         right.Children.Add(Button("Updates & recovery",()=>Navigate("Updates")));
+        right.Children.Add(Button("Troubleshooting",()=>Navigate("Troubleshooting")));
+        right.Children.Add(Button("Backup & restore",()=>Navigate("Backup")));
         right.Children.Add(Button("Clear app allowance totals",()=>{_host.ClearUsage();Refresh();}));
         right.Children.Add(Text("Daily totals cover only selected apps with an allowance while their guard is active. They stay here for 14 days; no window titles or activity timeline are stored.",12,"Muted",12));
         right.Children.Add(Button("Clear focus history",()=>
@@ -219,11 +227,10 @@ public partial class MainWindow : Window
     {
         try
         {
-            using var run=Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run");
-            if(enable)run.SetValue("CuteCat","\""+Environment.ProcessPath+"\" --tray");else run.DeleteValue("CuteCat",false);
-            _host.Update(_host.Settings with{Startup=enable});
+            StartupRegistration.Apply(enable);
+            _host.Update(_host.Settings with{Startup=enable,StartupInitialized=true});
         }
-        catch(Exception e) when(e is UnauthorizedAccessException or IOException){MessageBox.Show(this,"Windows did not allow the startup setting to change.","Cute Cat");Navigate("Settings");}
+        catch(Exception e) when(e is UnauthorizedAccessException or IOException or System.Security.SecurityException){MessageBox.Show(this,"Windows did not allow the startup setting to change.","Cute Cat");Navigate("Settings");}
     }
     private void Theme(string name) { SetTheme(name);_host.Update(_host.Settings with{Theme=name}); }
     public void SetTheme(string name)
@@ -234,7 +241,12 @@ public partial class MainWindow : Window
         string[] keys=["Paper","Panel","Ink","Muted","Line","Accent","AccentSoft","ButtonInk"];
         _darkTheme=dark;
         string[] colors=dark?["#171923","#222532","#F4F1EA","#B3B8CA","#3D4358","#BBC1FF","#33394F","#1A1D2D"]:["#F8F7FC","#EEEFF7","#25283B","#626980","#D8DCEA","#555FA1","#E5E7FA","#FFFFFF"];
-        for(int i=0;i<keys.Length;i++)Application.Current.Resources[keys[i]]=new SolidColorBrush((Color)ColorConverter.ConvertFromString(colors[i]));
+        for(int i=0;i<keys.Length;i++)
+        {
+            var color=(Color)ColorConverter.ConvertFromString(colors[i]);
+            if(Application.Current.Resources[keys[i]] is SolidColorBrush current&&current.Color==color)continue;
+            var brush=new SolidColorBrush(color);brush.Freeze();Application.Current.Resources[keys[i]]=brush;
+        }
         if(SystemParameters.HighContrast)
         {
             Application.Current.Resources["Paper"]=SystemColors.WindowBrush;Application.Current.Resources["Panel"]=SystemColors.ControlBrush;
@@ -248,7 +260,8 @@ public partial class MainWindow : Window
     private void WindowsAppearanceChanged(object sender,UserPreferenceChangedEventArgs e)=>Dispatcher.BeginInvoke(new Action(()=>SetTheme(_appliedTheme)));
     public void Refresh()
     {
-        if(!IsVisible)return;
+        if(!IsVisible||WindowState==WindowState.Minimized)return;
+        _toolsRefresh?.Invoke();
         RefreshWardrobe();
         if(_displayProfile!=_host.CurrentProfile.Id&&_current is "App guard" or "Profiles" or "Your cat" or "Focus"){Navigate(_current);return;}
         foreach(var pair in _usageLabels)
@@ -262,7 +275,9 @@ public partial class MainWindow : Window
             double remaining=session.Status==SessionStatus.Ready?_minutes*60:session.Remaining;
             int seconds=(int)Math.Ceiling(remaining);_timer.Text=$"{seconds/60:00}:{seconds%60:00}";
             _sessionLabel!.Text=session.Status switch{SessionStatus.Running=>session.IsBreak?"TAKE A BREATH":"A LITTLE TIME FOR YOURSELF",SessionStatus.Paused=>"PAUSED · RESUME WHEN YOU'RE READY",SessionStatus.Completed=>"NICELY DONE. TAKE A BREATH.",_=>"READY WHEN YOU ARE"};
-            _primary!.Content=session.Status switch{SessionStatus.Running=>"Pause",SessionStatus.Paused=>"Resume",_=>"Start focusing"};
+            string primary=session.Status switch{SessionStatus.Running=>"Pause",SessionStatus.Paused=>"Resume",SessionStatus.Completed when session.CanReturnToFocus=>"Back to focus",_=>"Start focusing"};
+            if(!Equals(_primary!.Content,primary))_primary.Content=primary;
+            if(_backToFocus is not null)_backToFocus.Visibility=session.IsBreak?Visibility.Visible:Visibility.Collapsed;
             _end!.Visibility=session.Status is SessionStatus.Running or SessionStatus.Paused?Visibility.Visible:Visibility.Collapsed;
             int today=_host.History.Where(r=>r.Finished.LocalDateTime.Date==DateTime.Today).Sum(r=>r.Seconds)/60;
             int week=_host.History.Where(r=>r.Finished>=DateTimeOffset.Now.AddDays(-7)).Sum(r=>r.Seconds)/60;
@@ -280,11 +295,11 @@ public partial class MainWindow : Window
             _=>"Windows did not show the test. Check that notifications for Cute Cat are allowed."
         };
         if(_catLabel is not null)_catLabel.Text=_host.Cat.Hidden?"Your cat is resting out of sight.":_host.Cat.Action switch{CatAction.Walk=>"A little wander around the desk.",CatAction.Run=>"Somewhere very important to be.",CatAction.Groom=>"Keeping those little paws tidy.",CatAction.Sleep=>"Shh. A very small nap.",CatAction.Meow=>"A tiny hello, just for you.",CatAction.Play=>"A little spring in those paws.",_=>"Breathing, blinking, and being a cat."};
-        Footer.Text=_host.SaveNotice??(_host.CurrentProfile.Name+(_host.Settings.AutomaticProfiles?" · scheduled":"")+" · "+(_host.Cat.Hidden?"cat hidden":_host.Brain.AutoSleeping?"napping":_host.Settings.AppGuard&&_host.CurrentProfile.GuardEnabled?"app guard on":"companion here"));
+        Footer.Text=_host.SaveNotice??_host.StartupNotice??(_host.CurrentProfile.Name+(_host.Settings.AutomaticProfiles?" · scheduled":"")+" · "+(_host.Cat.Hidden?"cat hidden":_host.Brain.AutoSleeping?"napping":_host.Settings.AppGuard&&_host.CurrentProfile.GuardEnabled?"app guard on":"companion here"));
     }
     private void UpdatePreview(double now)
     {
-        if(!IsVisible || _preview.Parent is null || now-_lastPreview<1d/30)return;
+        if(!IsVisible || WindowState==WindowState.Minimized||!_previewOnScreen||_preview.Parent is null || now-_lastPreview<1d/30)return;
         _lastPreview=now;_preview.Update(_host.Cat.Pose);
     }
 }

@@ -89,3 +89,19 @@ Schema 3 uses bounded JSON aggregates, no browsing timeline. Manual profile sele
 ## Open decisions
 
 Public brand/name, store distribution ownership, signing provider, updater, final release support matrix, additional free art variants, scheduling, Firefox, ARM64, and route-specific Reels/TikTok expansion. The app's cost is settled: completely free. These remaining decisions do not block the local companion milestone.
+
+## 13 September — companion extras
+
+- **D48 — Local 1.1.0 milestone:** all six authorized suggestions plus existing-instance shortcut activation. Preserve browser deferral and current normal-close, notification and menu semantics.
+- **D49 — Presentation follows policy:** the grace bubble observes GuardGate and binds an exception button to exact identity/path/epoch. It never drives a close timer. Nonactivating WPF UI, no global hook.
+- **D50 — Portable settings with review:** a bounded versioned backup contains configuration; imported rules start unchecked and global monitoring stays off. Keep startup, placement and earned session/history on this PC. Support reports use a separate fixed allowlist.
+- **D51 — Saved looks and breaks:** named outfits are immutable until explicitly replaced; edits detach profile links. Optional attended-focus cues preserve a paused focus snapshot across a five-minute break and restart.
+- **D52 — Shortcut signal:** use a payload-free registered message addressed to a per-instance message-only HWND; explicitly allow only that message across UIAccess integrity levels. Restore the existing panel instead of reporting a duplicate instance. No general IPC commands or new monitoring.
+
+## 1.1.1 UI responsiveness
+
+- **D53 — Input before background work:** keep cat animation rates/geometry; yield rendering callbacks to input, coalesce UI refresh and atomic background writes, cache bounded UI thumbnails and render previews at display resolution. Runtime policy updates remain synchronous.
+- **D54 — Brief elapsed-time UI transitions:** animate toggles and content reflow, including maximize/restore, with one temporary dispatcher timer. Use current displayed values for reversal; respect reduced motion and stop after completion.
+- **D55 — Startup default authorized:** the user explicitly requested startup on. Apply once at first normal 1.1.1 launch; record an additive StartupInitialized marker so later explicit opt-outs persist. Register only the app-owned current-user Run value. QA/custom data and read-only states are excluded. Keep the installer local until publication is approved.
+
+- **D56 — Publish the accepted 1.1.1 build:** the user explicitly authorized pushing the complete 1.1.0/1.1.1 work and a new GitHub release after local testing. Keep the installed installer unchanged; publish its matching SHA-256 and update metadata. Preserve the development-signing/UIAccess disclosure and existing regular-release updater channel.

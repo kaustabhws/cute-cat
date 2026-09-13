@@ -14,7 +14,7 @@ public sealed record ProfileSchedule(bool Enabled=false,int Days=31,int StartMin
     }
 }
 public sealed record FocusProfile(string Id,string Name,List<AppRule> Rules,ActivityLevel Activity=ActivityLevel.Balanced,
-    bool GuardEnabled=true,bool QuietDuringFocus=true,ProfileSchedule? Schedule=null);
+    bool GuardEnabled=true,bool QuietDuringFocus=true,ProfileSchedule? Schedule=null,string? OutfitId=null);
 
 public static class ProfilePolicy
 {

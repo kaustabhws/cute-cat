@@ -53,7 +53,7 @@ SetupWindowTitle=Cute Cat Setup
 WelcomeLabel1=Welcome to Cute Cat
 WelcomeLabel2=A little company for focused days.%n%nSetup will install Cute Cat on this PC and add it to Windows Installed apps. You can remove it there whenever you like.%n%nYour cat settings and focus history stay on this PC.
 FinishedHeadingLabel=Your new desk companion is ready
-FinishedLabel=Cute Cat is installed.%n%nOpen it from the Start menu or the desktop shortcut. To remove it later, open Settings > Apps > Installed apps > Cute Cat.%n%nUninstall keeps your settings and focus history.
+FinishedLabel=Cute Cat is installed.%n%nOpen it from the Start menu or the desktop shortcut. On first open, your cat is set to start quietly with Windows. You can turn this off in Settings.%n%nTo remove it later, open Settings > Apps > Installed apps > Cute Cat. Uninstall keeps your settings and focus history.
 ConfirmUninstall=Remove Cute Cat from this PC?%n%nThe app, its shortcuts, and certificate trust owned by Cute Cat will be removed. Your settings and focus history will be kept.
 
 [Tasks]

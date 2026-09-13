@@ -49,7 +49,8 @@ public sealed class FrameClock : IDisposable
                     }
                     if(_stop.IsCancellationRequested)continue;
                     if(Interlocked.CompareExchange(ref _queued,1,0)!=0)continue;
-                    dispatcher.BeginInvoke(DispatcherPriority.Render,new Action(()=>
+                    // Mouse/keyboard and WPF's own animations get first use of the UI thread.
+                    dispatcher.BeginInvoke(DispatcherPriority.Background,new Action(()=>
                     {
                         Interlocked.Exchange(ref _queued,0);
                         if(!_stop.IsCancellationRequested)frame(Now);

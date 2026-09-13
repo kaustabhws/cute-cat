@@ -1,5 +1,5 @@
 {
-  "contractVersion": 6,
+  "contractVersion": 7,
   "characterRevision": 2,
   "character": "oat-cat-01",
   "renderer": "original-cubic-paths",
@@ -17,7 +17,7 @@
     128,
     160
   ],
-  "symmetricCoat": true,
+  "symmetricCoat": false,
   "poseBlendSeconds": 0.32,
   "actions": [
     "Idle",
@@ -33,7 +33,10 @@
     "Turn",
     "Wake",
     "Notice",
-    "Celebrate"
+    "Celebrate",
+    "Pet",
+    "Stretch",
+    "Drink"
   ],
   "turn": {
     "seconds": 0.86,
@@ -86,15 +89,28 @@
   "runtimeImageAssets": false,
   "appearance": {
     "coat": "opaque RGB hex, cached palette; contrast-aware face",
-    "slots": ["Hat", "Neckwear", "Collar"],
+    "slots": [
+      "Hat",
+      "Neckwear",
+      "Collar"
+    ],
     "independentColors": true,
     "neckLayer": "collar then neckwear, both behind the chin",
-    "hatAnchor": "head transform; flower additionally follows ear hinge"
+    "hatAnchor": "head transform; flower additionally follows ear hinge",
+    "patterns": [
+      "Solid",
+      "Tabby",
+      "Tuxedo",
+      "Calico"
+    ],
+    "savedOutfitsMaximum": 24,
+    "patternGeometry": "body/head-clipped procedural markings; asymmetric calico follows orientation"
   },
   "source": [
     "src/CuteCat.Core/CatRig.cs",
     "src/CuteCat.Core/TurnTransition.cs",
-    "src/CuteCat.App/CatPainter.cs"
+    "src/CuteCat.App/CatPainter.cs",
+    "src/CuteCat.App/CatPainter.Patterns.cs"
   ],
   "accessories": [
     "None",
@@ -110,5 +126,5 @@
     "symbols": "three staggered floating z glyphs",
     "wake": "procedural stretch"
   },
-  "stateSchema": 2
+  "stateSchema": 5
 }

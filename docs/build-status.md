@@ -1,5 +1,31 @@
 # Current build status
 
+## 1.1.1 publication approved
+
+The user approved the GitHub push and new release after local installation. Publish the unchanged tested 1.1.1 installer identified below, together with its checksum and updater metadata. All completed source, tests and documentation belong in this release; private build artifacts and signing keys remain excluded. Release/CI verification is recorded in the GitHub release and task handoff. The local-only statements in earlier milestones describe their original delivery status.
+
+## 1.1.1 installed local update — UI responsiveness and startup
+
+Implements the user-requested app-UI optimization, smooth toggle/reversal and maximize/restore reflow, and Windows startup enabled by default. Desktop-cat geometry and frame-rate policy are unchanged. Coalesced background saves, bounded/lazy thumbnails, display-resolution previews, fewer redundant UI refreshes and stopped disabled-helper polling reduce unnecessary work. See [the current contract](24-ui-responsiveness.md).
+
+Controlled software-rendered RDP fixture: toggle-handler p95 **9.062 → 0.764 ms**, repeated wardrobe navigation mean **94.774 → 33.090 ms**, and toggle-burst allocation **5.794 → 1.725 MiB/s**. This is app-owned event/dispatcher timing, not physical input-to-photon latency. Short-run CPU values vary, so no universal CPU reduction is claimed. Source evidence: `artifacts/v111-ui-before` and `artifacts/v111-responsiveness-final`.
+
+Local Release build: zero warnings/errors; **217 core checks** passed. Installed signed UIAccess candidate: **13 responsiveness/resize**, **85 full native regression**, **25 extras**, **10 opening**, **19 simulated menu lifecycle**, **12 appearance/caption**, and **14 installer/signature/preservation** checks passed. Evidence: `artifacts/v111-installed-*` and `artifacts/install-v111-local`. Current device is upgraded to 1.1.1; normal startup registers the current-user Run entry and records StartupInitialized. Explicit later off choices are preserved.
+
+Installer: `dist/installer/CuteCat-1.1.1-Setup.exe`, **58,877,048 bytes**, SHA-256 `3B7F53F7AD93F537DF5D7407C621CEFC02EF72270DD282A4FA65963CE597024A`. The protected development signer is unchanged. No GitHub push/tag/release was performed. User acceptance of real desktop feel, mixed-DPI behavior and actual logon remains separate from local fixture checks. See [handoff](handoff-2026-09-13-responsiveness.md).
+
+## 1.1.0 local candidate — companion extras and shortcut activation
+
+Implements EXTRA-01–07: grace countdown/Allow 5 minutes; Troubleshooting and an allowlisted support report; saved outfits and procedural coat patterns; expressive petting/optional purr; optional attended-focus stretch/water cues with preserved focus return; reviewed settings export/import; and desktop/Start shortcuts that show the existing app. State schema 5 preserves schema-4 input separately. Browser detection is unchanged/deferred. See [the contract](23-companion-extras.md).
+
+The local Release build passes with zero warnings/errors and **210 core checks**. **25 extras checks** pass on the self-contained candidate (`artifacts/v110-extras-final`), including real second-process launches, hidden/minimized/maximized restoration, exact grace/exception binding, native cue visibility, profile-linked appearance, break recovery and import cancellation. Controlled-app foreground identity is explicitly injected under RDP; button-event tests are not physical click proof.
+
+Earlier regression runs on the feature implementation passed **82 native checks**, **10 menu-opening checks**, **19 simulated-activation menu lifecycle checks** and **12 appearance/caption checks** (`artifacts/v110-full-a`, `v110-opening-a`, `v110-lifecycle-a`, `v110-appearance-a`). Light/dark UI, minimum-width wardrobe, patterns across orientations/poses and pet/stretch/drink sequences were rendered and inspected. Original paw contact/turn/menu behavior remains covered. Final installed-build results are recorded in the handoff.
+
+Installed 1.1.0 verification: **25 extras**, **82 native regression**, **10 menu-opening**, **19 simulated menu-lifecycle**, **12 appearance/caption** and **14 installer** checks all passed. Evidence is under `artifacts/v110-installed-*` and `artifacts/install-v110-local`. The installer is 58,867,824 bytes, SHA-256 `BFB88FE6FB333EC7032B6AB052C1C3D4C10D195764327E027CF9BD20A3A2BEBC`. See [current handoff](handoff-2026-09-13-extras.md). Live desktop limitations remain explicit below and in that handoff.
+
+The same protected development identity is reused; no new certificate trust or public signing claim is introduced. The installer is local, and the published GitHub release remains 1.0.0. Updated CI includes extras/shortcut coverage but has not been run remotely for this unpublished work.
+
 ## 1.0.0 release target — user-authorized normal GitHub release
 
 The user requested all current changes and a release numbered 1.0.0, plus guidance for a production public release. Version 1.0.0 includes the 0.9.3 menu correction and uses neutral version wording in Updates; its update feed excludes draft/pre-release entries. State schema stays at 4. The GitHub release is requested as normal/Latest, while development-signing and UIAccess limitations remain explicitly disclosed.

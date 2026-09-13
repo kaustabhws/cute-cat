@@ -68,7 +68,7 @@ public sealed class Companion
     public void Perform(CatAction action, double now)
     {
         CancelTravel();
-        _resumeWalk=action is CatAction.Meow or CatAction.Land or CatAction.Wake;
+        _resumeWalk=action is CatAction.Meow or CatAction.Land or CatAction.Wake or CatAction.Pet;
         if (action is CatAction.Walk or CatAction.Run) { Roam(now,action); return; }
         if (action==CatAction.Turn)
         {
@@ -78,7 +78,7 @@ public sealed class Companion
         }
         SetAction(action,now);
         _next=now+(action switch { CatAction.Groom=>5.8,CatAction.Sleep=>double.PositiveInfinity,CatAction.Wake=>1.4,CatAction.Play=>3,
-            CatAction.Meow=>1.1,CatAction.Land=>.55,CatAction.Paw=>1.3,CatAction.Celebrate=>1.8,CatAction.Notice=>double.PositiveInfinity,CatAction.Drag=>double.PositiveInfinity,_=>5 });
+            CatAction.Meow=>1.1,CatAction.Pet=>1.45,CatAction.Stretch=>2.4,CatAction.Drink=>2.7,CatAction.Land=>.55,CatAction.Paw=>1.3,CatAction.Celebrate=>1.8,CatAction.Notice=>double.PositiveInfinity,CatAction.Drag=>double.PositiveInfinity,_=>5 });
     }
     public void Notice(int direction,double now)
     {Perform(CatAction.Notice,now);_lookFrom=_turn.Current.Head;int target=direction<0?-1:1;_lookTo=target==Facing?target:Facing*.3;}

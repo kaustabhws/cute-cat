@@ -1,6 +1,6 @@
 namespace CuteCat.Core;
 
-public enum CatAction { Idle, Walk, Run, Groom, Sleep, Meow, Play, Drag, Land, Paw, Turn, Wake, Notice, Celebrate }
+public enum CatAction { Idle, Walk, Run, Groom, Sleep, Meow, Play, Drag, Land, Paw, Turn, Wake, Notice, Celebrate, Pet, Stretch, Drink }
 
 // All values are continuous rig parameters; there are no frame indices or image assets.
 public readonly record struct CatPose(
@@ -9,7 +9,7 @@ public readonly record struct CatPose(
     V2 HindFar, V2 ForeFar, V2 HindNear, V2 ForeNear,
     double BodyYaw=1, double HeadYaw=1, double TailYaw=1, V2? PawEnd=null,
     double SleepPhase=0,double SleepBubble=0,double Anger=0,PetAccessory Accessory=PetAccessory.None,string AccessoryColor="Sage",
-    double EarLeft=0,double EarRight=0,double Celebration=0,PetAppearance? Appearance=null)
+    double EarLeft=0,double EarRight=0,double Celebration=0,PetAppearance? Appearance=null,double Affection=0,double Sip=0)
 {
     public static CatPose Blend(CatPose a, CatPose b, double t) => new(
         Ease.Mix(a.Sit,b.Sit,t), Ease.Mix(a.Curl,b.Curl,t), Ease.Mix(a.Bob,b.Bob,t),
@@ -18,7 +18,7 @@ public readonly record struct CatPose(
         Ease.Mix(a.Blush,b.Blush,t), Ease.Mix(a.Reach,b.Reach,t), V2.Lerp(a.HindFar,b.HindFar,t),
         V2.Lerp(a.ForeFar,b.ForeFar,t), V2.Lerp(a.HindNear,b.HindNear,t), V2.Lerp(a.ForeNear,b.ForeNear,t),
         PawEnd:V2.Lerp(a.PawEnd??CatRig.Contact,b.PawEnd??CatRig.Contact,t),SleepPhase:b.SleepPhase,
-        SleepBubble:Ease.Mix(a.SleepBubble,b.SleepBubble,t),EarLeft:Ease.Mix(a.EarLeft,b.EarLeft,t),EarRight:Ease.Mix(a.EarRight,b.EarRight,t),Celebration:Ease.Mix(a.Celebration,b.Celebration,t));
+        SleepBubble:Ease.Mix(a.SleepBubble,b.SleepBubble,t),EarLeft:Ease.Mix(a.EarLeft,b.EarLeft,t),EarRight:Ease.Mix(a.EarRight,b.EarRight,t),Celebration:Ease.Mix(a.Celebration,b.Celebration,t),Affection:Ease.Mix(a.Affection,b.Affection,t),Sip:Ease.Mix(a.Sip,b.Sip,t));
 }
 
 public static class CatRig
@@ -82,6 +82,20 @@ public static class CatRig
             case CatAction.Meow:
                 double mew = Ease.Pulse(age%2.1,.78,.56);
                 p = p with { Sit=.58, HeadTilt=-7*mew, HeadDrop=-3*mew, Eyes=.85-.55*mew, Mouth=mew, Blush=.7 };
+                break;
+            case CatAction.Pet:
+                double affection=reduced?1:Ease.Pulse(age,.72,.72);
+                p=p with{Sit=.5,HeadTilt=-15*affection,HeadDrop=-6*affection,Eyes=1-.99*affection,
+                    Blush=affection,Tail=.3+.06*Math.Sin(age*6),EarLeft=-9*affection,EarRight=8*affection,Affection=affection};
+                break;
+            case CatAction.Stretch:
+                double stretchCue=reduced?0:Ease.Pulse(age,1.15,1.1);
+                p=p with{Sit=0,Stretch=.22*stretchCue,HeadDrop=12*stretchCue,HeadTilt=-9*stretchCue,Eyes=.08,
+                    Bob=3*stretchCue,ForeNear=new(15*stretchCue,-2*stretchCue),ForeFar=new(12*stretchCue,-2*stretchCue),Tail=.45};
+                break;
+            case CatAction.Drink:
+                double sip=reduced?0:Ease.Pulse(age,1.3,1.25);
+                p=p with{Sit=.7,HeadDrop=48*sip,HeadTilt=14*sip,Eyes=.2,Mouth=.22*sip*(.5+.5*Math.Sin(age*7)),Sip=sip,Tail=-.1};
                 break;
             case CatAction.Play:
                 double bounce = Math.Max(0,Math.Sin(age*4.4));

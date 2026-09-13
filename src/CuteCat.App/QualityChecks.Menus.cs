@@ -32,7 +32,7 @@ public static partial class QualityChecks
             await CatRequest();Check("cat menu remains visible when focus request is refused",Visible());
             var hello=((PetMenuItems)host.Menu.View!).Items.OfType<MenuItem>().First(i=>i.Header?.ToString()=="Pet & say hello");
             ((IInvokeProvider)new MenuItemAutomationPeer(hello).GetPattern(PatternInterface.Invoke)).Invoke();await Task.Delay(150);
-            Check("unfocused menu remains usable and closes after selection",host.Cat.Action==CatAction.Meow&&!host.Menu.IsOpen&&!host.Cat.AutonomyPaused);
+            Check("unfocused menu remains usable and closes after selection",host.Cat.Action==CatAction.Pet&&!host.Menu.IsOpen&&!host.Cat.AutonomyPaused);
             host.ShowCat(false);await TrayRequest();Check("hidden-tray path remains visible when focus request is refused",Visible());
             var root=(PetMenuItems)host.Menu.View!;
             root.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice,Environment.TickCount,MouseButton.Left){RoutedEvent=Mouse.PreviewMouseDownOutsideCapturedElementEvent});await Task.Delay(150);
@@ -109,7 +109,7 @@ public static partial class QualityChecks
             window.Hide();host.Menu.ActivateWindow(other);await Open();
             var hello=((PetMenuItems)host.Menu.View!).Items.OfType<MenuItem>().First(i=>i.Header?.ToString()=="Pet & say hello");
             ((IInvokeProvider)new MenuItemAutomationPeer(hello).GetPattern(PatternInterface.Invoke)).Invoke();await Task.Delay(200);
-            Check("ordinary menu commands still execute and dismiss",host.Cat.Action==CatAction.Meow&&!host.Menu.IsOpen&&!host.Cat.AutonomyPaused,new{host.Cat.Action,host.Menu.IsOpen,host.Cat.AutonomyPaused});
+            Check("ordinary menu commands still execute and dismiss",host.Cat.Action==CatAction.Pet&&!host.Menu.IsOpen&&!host.Cat.AutonomyPaused,new{host.Cat.Action,host.Menu.IsOpen,host.Cat.AutonomyPaused});
             await Open();CancelMenuMode(host.Menu.PopupHandle,0x1F,IntPtr.Zero,IntPtr.Zero);await Task.Delay(150);
             Check("native cancellation clears menu ownership",!host.Menu.IsOpen&&Native.GetCapture()==IntPtr.Zero&&!host.Cat.AutonomyPaused);
             bool repeats=true;for(int i=0;i<3;i++){await Open();repeats&=host.Menu.IsOpen;host.Menu.ActivateWindow(other);await Task.Delay(150);repeats&=!host.Menu.IsOpen&&!host.Cat.AutonomyPaused;}

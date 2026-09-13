@@ -24,6 +24,7 @@ public sealed partial class CatPainter : IDisposable
     public void Draw(Graphics g,CatPose p,float scale,float offsetX=0,float offsetY=0)
     {
         ApplyCoat(Appearance(p).CoatColor);
+        ApplyPattern(Appearance(p));
         var saved=g.Save();
         g.SmoothingMode=SmoothingMode.AntiAlias;g.PixelOffsetMode=PixelOffsetMode.HighQuality;
         g.TranslateTransform(offsetX,offsetY);g.ScaleTransform(scale,scale);
@@ -42,6 +43,7 @@ public sealed partial class CatPainter : IDisposable
             tail.AddBezier(T(L(64+wave,192),L(135,221),27),T(L(65+wave,200),L(117,219),29),
                 T(L(47+wave,204),L(119,212),38),T(L(50+wave,197),L(139,211),38));
             g.DrawPath(_tailEdge,tail);g.DrawPath(_tailFill,tail);
+            if(Appearance(p).Pattern==CoatPattern.Tabby)g.DrawPath(_tailStripes,tail);
         }
 
         Leg(g,new(126,189+rootY),new V2(123,214)+p.HindFar,true,p.BodyYaw,24,curl);
@@ -58,7 +60,7 @@ public sealed partial class CatPainter : IDisposable
             body.AddBezier(cx,top,right-11,top-2,right+5,top+13,right,top+39);
             body.AddBezier(right,top+39,right+1,belly+4,cx+23,belly+4,cx,belly);
             body.AddBezier(cx,belly,left+15,belly+6,left-6,belly-9,left,top+34);
-            body.CloseFigure();g.FillPath(_cream,body);g.DrawPath(_outline,body);
+            body.CloseFigure();g.FillPath(_cream,body);BodyPattern(g,p,body,cx,half,top,belly);g.DrawPath(_outline,body);
         }
 
         Leg(g,new(119,190+rootY),new V2(116,219)+p.HindNear,false,p.BodyYaw,-24,curl);
@@ -68,6 +70,7 @@ public sealed partial class CatPainter : IDisposable
         CoverJoint(g,new(201,184+rootY),p.BodyYaw,-24,33,29);
         DrawNeckAccessory(g,p);
         DrawHead(g,p);
+        if(p.Sip>.01)DrawWater(g,p);
         if(p.Celebration>.01)
         {
             using var sparkle=new Pen(Color.FromArgb((int)(210*p.Celebration),204,163,79),2.4f){StartCap=LineCap.Round,EndCap=LineCap.Round};
@@ -124,7 +127,7 @@ public sealed partial class CatPainter : IDisposable
             head.AddBezier(51,18,46,38,20,42,1,41);
             head.AddBezier(1,41,-23,43,-49,34,-51,17);
             head.AddBezier(-51,17,-53,12,-53,6,-51,2);
-            head.CloseFigure();g.FillPath(_cream,head);g.DrawPath(_outline,head);
+            head.CloseFigure();g.FillPath(_cream,head);HeadPattern(g,p,head);g.DrawPath(_outline,head);
         }
         using(var ear=new GraphicsPath())
         {
@@ -145,6 +148,11 @@ public sealed partial class CatPainter : IDisposable
             float h=10.5f*e;
             g.FillEllipse(_ink,-22,-h/2,7.4f,h);g.FillEllipse(_ink,17,-h/2,7.4f,h);
             if(e>.7) {g.FillEllipse(_shine,-20.8f,-h/2+1.2f,1.7f,1.7f);g.FillEllipse(_shine,18.2f,-h/2+1.2f,1.7f,1.7f);}
+        }
+        else if(p.Affection>.3)
+        {
+            using var eye=new GraphicsPath();eye.AddBezier(-23,2,-21,-4,-16,-4,-13,2);g.DrawPath(_face,eye);
+            eye.Reset();eye.AddBezier(15,2,18,-4,23,-4,25,2);g.DrawPath(_face,eye);
         }
         else
         {
@@ -264,5 +272,6 @@ public sealed partial class CatPainter : IDisposable
     {
         _cream.Dispose();_ink.Dispose();_ear.Dispose();_blush.Dispose();_tongue.Dispose();_shine.Dispose();
         _outline.Dispose();_face.Dispose();_tailEdge.Dispose();_tailFill.Dispose();_legEdge.Dispose();_legFill.Dispose();_legFar.Dispose();
+        _patternFill.Dispose();_secondPatch.Dispose();_stripes.Dispose();_tailStripes.Dispose();
     }
 }

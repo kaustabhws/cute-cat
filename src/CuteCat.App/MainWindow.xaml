@@ -10,7 +10,7 @@
         <WrapPanel x:Name="Navigation" Orientation="Horizontal" HorizontalAlignment="Right" Margin="20,0,0,0"/>
       </DockPanel>
     </Border>
-    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><Grid x:Name="Page" Margin="36,29,36,24"/></ScrollViewer>
+    <ScrollViewer x:Name="PageScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><Grid x:Name="Page" HorizontalAlignment="Left" Margin="36,29,36,24"/></ScrollViewer>
     <Border Grid.Row="2" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Padding="32,13">
       <DockPanel><TextBlock x:Name="Footer" FontSize="11" Foreground="{DynamicResource Muted}"/><TextBlock Text="Free · Local · Made for Windows" DockPanel.Dock="Right" HorizontalAlignment="Right" FontSize="11" Foreground="{DynamicResource Muted}"/></DockPanel>
     </Border>

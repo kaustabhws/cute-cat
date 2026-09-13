@@ -1,5 +1,7 @@
 # Product requirements
 
+**1.1.0 extension:** EXTRA-01–07 in [Companion extras](23-companion-extras.md) define the authorized grace cue, troubleshooting, saved procedural looks, pet reactions, optional break cues, reviewed settings transfer and existing-instance shortcut behavior. Existing paw identity/contact/cancellation and menu requirements still apply.
+
 **1.0.0 publication direction:** the user requested all current changes on GitHub and a normal release numbered 1.0.0, plus production-release guidance. Preserve existing functionality and truthfully disclose development signing, UIAccess scope and uncompleted desktop checks. The stable updater excludes draft/pre-release entries. Browser integration remains deferred; the public-release guide defines the current companion-only production work.
 
 **0.9.3 correction:** menu visibility is independent of foreground/capture success. Both cat and tray right-click paths must open a native visible menu, including when the main panel or cat is hidden and Windows refuses focus. Activation failures and opening transitions must not dismiss it. Preserve context-style submenus and existing outside-click/Escape/selection cleanup. The prior 0.9.2 failure guard violated this requirement.
@@ -85,7 +87,7 @@ Status: proposed specification. These IDs define scope and acceptance. P0 is the
 - Default character size: 128 logical pixels tall; small 96, large 160. Aspect ratio is preserved.
 - Cat parks near the bottom-right of the current work area with a margin, above the taskbar. A monitor can be chosen explicitly.
 - Normal activity uses occasional short edge walks; quiet mode is suggested during focus. Reduced motion follows OS preference initially and can be changed.
-- Sounds off. Startup off until chosen. Theme follows Windows; explicit light/dark options exist.
+- Sounds off. Startup is on by default from 1.1.1 per the user request; a later opt-out is remembered. Theme has explicit light/dark/system options.
 - Shorts protection is a suggested toggle, not an enabled hidden permission. Whole-site presets start off.
 - Application rules are nudges only and start empty. Labels say “Nudge me in this app,” not “Block app.”
 - Default focus preset 25 minutes; suggested break 5 minutes; no automatic repeat.

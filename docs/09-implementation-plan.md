@@ -1,5 +1,11 @@
 # Implementation plan
 
+**Current task — publish 1.1.1:** the user approved pushing all completed changes and the new installer release. Preserve the tested installer, update release documentation, verify the source/CI and uploaded assets. The earlier publication holds below are historical.
+
+**Current task — 1.1.1:** optimize the app UI and toggles, animate maximize/restore reflow, preserve desktop-cat animation/protection, enable Windows startup by default, and install locally. Do not push or release until the user approves. See [contract](24-ui-responsiveness.md).
+
+**Current local task — 1.1.0:** implement EXTRA-01–07 from [the extras contract](23-companion-extras.md), preserve the working notification/menu/app-guard flows, verify local regression/artwork/installation, and keep the candidate local. Browser URLs remain deferred. Earlier task entries below are historical.
+
 **Current task — 1.0.0:** publish all current code and the installer under version 1.0.0 as requested, verify CI/artifacts, and explain the remaining production-release steps. Keep development-trust/UIAccess limitations visible. Do not treat the version number or GitHub's normal-release flag as public-CA signing or completed desktop certification. The former local-only restriction on the menu corrections is lifted by this request. See [release guide](22-public-release-guide.md).
 
 **Current 0.9.3 task:** repair the menu-not-opening regression from 0.9.2 for both cat and hidden-tray entry points. A denied focus request must never suppress the menu. Use a real activatable menu window, verify native visibility without faking activation success, and keep dismissal/submenu checks separate. Install locally for user testing; 0.9.1 remains published.

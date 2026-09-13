@@ -44,6 +44,13 @@ jobs:
           $qa = Join-Path $pwd 'artifacts/ci-menu-opening'
           $process = Start-Process './src/CuteCat.App/bin/Release/net10.0-windows10.0.19041.0/CuteCat.exe' -ArgumentList @('--standard-user','--tray','--qa',('"'+$qa+'"'),'--menu-opening-checks') -WindowStyle Hidden -Wait -PassThru
           exit $process.ExitCode
+      - name: Companion extras and shortcut activation
+        shell: pwsh
+        run: |
+          $fixture = Join-Path $pwd 'tests/CuteCat.ShellProbe/bin/Release/net10.0-windows10.0.19041.0/CuteCat.ShellProbe.exe'
+          $qa = Join-Path $pwd 'artifacts/ci-extras'
+          $process = Start-Process './src/CuteCat.App/bin/Release/net10.0-windows10.0.19041.0/CuteCat.exe' -ArgumentList @('--standard-user','--qa',('"'+$qa+'"'),'--extras-checks','--app-fixture',('"'+$fixture+'"')) -WindowStyle Hidden -Wait -PassThru
+          exit $process.ExitCode
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -54,4 +61,7 @@ jobs:
             artifacts/ci-art/personality.png
             artifacts/ci-menu-opening/menu-opening-checks.json
             artifacts/ci-menu-opening/failure.txt
+            artifacts/ci-extras/extras-checks.json
+            artifacts/ci-extras/failure.txt
+            artifacts/ci-extras/pattern-sheet.png
           if-no-files-found: ignore

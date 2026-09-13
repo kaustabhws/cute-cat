@@ -206,13 +206,13 @@ foreach(double dpi in new[]{1,1.25,1.5,2})foreach(int size in new[]{96,128,160})
 Check("top caption close buttons are reachable at all supported sizes",topReach);
 File.WriteAllText(store.StatePath,"{\"Schema\":1,\"Settings\":{\"Nickname\":\"Kept\"}}");
 var upgradeStore=new StateStore(dir);var upgraded=upgradeStore.Load();
-Check("schema 1 upgrades without enabling app closing",upgraded.Schema==4&&upgraded.Settings.Nickname=="Kept"&&!upgraded.Settings.AppGuard&&upgraded.Settings.AppRules.Count==0&&File.Exists(store.StatePath+".schema1.json"));
+Check("schema 1 upgrades without enabling app closing",upgraded.Schema==5&&upgraded.Settings.Nickname=="Kept"&&!upgraded.Settings.AppGuard&&upgraded.Settings.AppRules.Count==0&&File.Exists(store.StatePath+".schema1.json"));
 await upgradeStore.SaveAsync(upgraded with{Settings=upgraded.Settings with{Accessory=PetAccessory.Flower,AccessoryColor="Sky",Profiles=upgraded.Settings.Profiles.Select(p=>p.Id=="work"?p with{Rules=[rule]}:p).ToList()}});
 var saved=upgradeStore.Load();Check("customizations and app rules survive restart",saved.Settings.Accessory==PetAccessory.Flower&&saved.Settings.AccessoryColor=="Sky"&&saved.Settings.AppRules.Single().Path==rule.Path);
 ProfileChecks.Run(Check);
 File.WriteAllText(store.StatePath,System.Text.Json.JsonSerializer.Serialize(new AppState{Schema=2,Settings=new Preferences{Nickname="Kept",AppGuard=true,AppRules=[rule]}}));
 var schema2=new StateStore(dir).Load();
-Check("schema 2 rules migrate only into Work with a preserved original",schema2.Schema==4&&schema2.Settings.Profiles.Single(p=>p.Id=="work").Rules.Count==1&&schema2.Settings.Profiles.Single(p=>p.Id=="study").Rules.Count==0&&schema2.Settings.AppGuard&&File.Exists(store.StatePath+".schema2.json"));
+Check("schema 2 rules migrate only into Work with a preserved original",schema2.Schema==5&&schema2.Settings.Profiles.Single(p=>p.Id=="work").Rules.Count==1&&schema2.Settings.Profiles.Single(p=>p.Id=="study").Rules.Count==0&&schema2.Settings.AppGuard&&File.Exists(store.StatePath+".schema2.json"));
 File.WriteAllText(store.StatePath,"{\"Schema\":3,\"Settings\":{\"Nickname\":\"Wardrobe\",\"Accessory\":4,\"AccessoryColor\":\"Rose\",\"Theme\":\"Dark\"}}");
 var wardrobeStore=new StateStore(dir);var wardrobe=wardrobeStore.Load();
 Check("schema 3 migrates flower to head slot and preserves theme",wardrobe.Settings.Appearance is{Hat:CatHat.Flower,HatColor:"#D794A5"}&&wardrobe.Settings.Theme=="Dark"&&File.Exists(store.StatePath+".schema3.json"));
@@ -224,5 +224,7 @@ Check("coat changes preserve all worn accessories",(outfit with{CoatColor=PetApp
 Check("invalid colours and outfit values use safe defaults",(outfit with{CoatColor="transparent",Hat=(CatHat)999,HatColor="#123"}).Normalize() is{CoatColor:PetAppearance.Oat,Hat:CatHat.None,HatColor:PetAppearance.Sage});
 Check("title bar choice is normalized independently of theme",StateStore.Normalize(new(){Settings=new(){Theme="Dark",TitleBarStyle="invalid"}}).Settings is{Theme:"Dark",TitleBarStyle:"Theme"});
 Check("custom colours are opaque six-digit RGB only",PetAppearance.IsColor("#abcdef")&&!PetAppearance.IsColor("#abc")&&!PetAppearance.IsColor("#00ffffff")&&!PetAppearance.IsColor("#zzzzzz"));
+await ExtrasChecks.Run(Check,dir);
+await PersistenceChecks.Run(Check);
 Console.WriteLine($"\n{passed} passed; {failed} failed. Isolated fixtures: {dir}");
 Environment.ExitCode=failed==0?0:1;

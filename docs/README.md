@@ -1,6 +1,8 @@
 # Documentation map
 
-Current release target: **1.0.0**, explicitly requested by the user together with the GitHub push and a normal release. The source includes the menu-opening correction. The current installer retains self-signed development trust; a standard GitHub release flag does not make it production-qualified. Start with [public-release guide](22-public-release-guide.md), [build status](build-status.md), and [menu lifecycle](21-menu-dismissal.md).
+Current release: **1.1.1**, approved for GitHub publication by the user on 13 September 2026. It includes the 1.1.0 companion extras and 1.1.1 UI/startup improvements. Read [release notes](releases/v1.1.1.md), [the performance contract](24-ui-responsiveness.md), [companion extras](23-companion-extras.md), and [build status](build-status.md).
+
+The installer retains development signing and UIAccess. A normal GitHub release flag is not public-CA signing or production certification; see [the production guide](22-public-release-guide.md).
 
 The 0.9.3 menu correction is included in 1.0.0: 0.9.2's focus-failure guard hid both menus, so it was removed and a real menu window is used. Opening checks verify native visibility; simulated activation coverage and live outside-click checks are recorded separately. Publication of these changes is now authorized.
 
@@ -37,7 +39,9 @@ This checkout contained only documentation at task entry. Historical 0.2/0.3 imp
 | [Appearance and theme](20-appearance-and-theme.md) | Local-only wardrobe, coat colours, periwinkle theme, native caption and migration |
 | [Menu dismissal](21-menu-dismissal.md) | Foreground ownership, outside clicks, submenu cleanup and RDP test limits |
 | [Production release guide](22-public-release-guide.md) | Public signing, UIAccess scope, trust migration, Windows acceptance and distribution |
-| [Current handoff](handoff-2026-09-12-customization.md) | 0.7 implementation, executed checks, accessory correction and release |
+| [Companion extras](23-companion-extras.md) | Grace cue, diagnostics, outfits, petting, breaks, settings transfer and shortcut activation |
+| [UI responsiveness](24-ui-responsiveness.md) | Toggle/reflow motion, background persistence, UI resource bounds and startup default |
+| [Current handoff](handoff-2026-09-13-responsiveness.md) | 1.1.1 UI responsiveness, startup, measured checks and local installer |
 
 ## Actual scope
 

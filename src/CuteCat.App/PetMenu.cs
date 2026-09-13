@@ -21,10 +21,13 @@ public sealed class PetMenu(CompanionHost host)
     public bool IsOpen=>_window?.IsVisible==true;
     internal FrameworkElement? View=>_menu;
     internal IntPtr PopupHandle=>_window is null?IntPtr.Zero:new WindowInteropHelper(_window).Handle;
+    internal int OpenCount { get; private set; }
+    internal int CloseCount { get; private set; }
     public void Close()=>_dismiss?.Invoke(true);
 
     public void Show(V2 point)
     {
+        OpenCount++;
         IntPtr previous=ForegroundWindow();
         if(_menu is not null&&ContainsWindow(_menu,previous))previous=_returnFocus;
         Close();host.Brain.UserAction(CatAction.Idle);host.CancelPaw();host.Cat.Stop(FrameClock.Now);host.Cat.AutonomyPaused=true;
@@ -83,6 +86,7 @@ public sealed class PetMenu(CompanionHost host)
         };
         view.Closed+=(_,_)=>
         {
+            CloseCount++;
             if(source is not null&&!source.IsDisposed)source.RemoveHook(OnMessage);
             CloseSubmenus(menu);
             if(Mouse.Captured is Visual captured&&PresentationSource.FromVisual(captured) is HwndSource capturedSource&&ContainsWindow(menu,capturedSource.Handle))Mouse.Capture(null);
@@ -118,7 +122,7 @@ public sealed class PetMenu(CompanionHost host)
         menu.Items.Add(new MenuItem{Header=host.Settings.Nickname+" · your companion",IsEnabled=false});
         menu.Items.Add(new Separator());
         menu.Items.Add(Item("Open Cute Cat","\uE80F",host.OpenPanel));
-        menu.Items.Add(Item("Pet & say hello","\uEB51",()=>host.Perform(CatAction.Meow)));
+        menu.Items.Add(Item("Pet & say hello","\uEB51",()=>host.Perform(CatAction.Pet)));
         menu.Items.Add(Item(host.Cat.Action==CatAction.Sleep?"Wake up":"Take a nap","\uE708",()=>host.Perform(host.Cat.Action==CatAction.Sleep?CatAction.Wake:CatAction.Sleep)));
         menu.Items.Add(Item("Park by the taskbar","\uE81D",host.Park));
         menu.Items.Add(Item("Return to my resting spot","\uE80F",host.ReturnToSpot));

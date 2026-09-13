@@ -8,7 +8,7 @@ using Forms=System.Windows.Forms;
 
 namespace CuteCat.App;
 
-public sealed class CompanionHost : IDisposable
+public sealed partial class CompanionHost : IDisposable
 {
     public Companion Cat { get; }
     public CatSurface Surface { get; }
@@ -25,7 +25,7 @@ public sealed class CompanionHost : IDisposable
     public PointerGesture Gesture { get; }=new();
     public PracticeWindow? Practice { get; private set; }
     public string NotificationStatus { get; private set; }="Paw helper is off";
-    public string? SaveNotice { get; private set; }
+    public string? SaveNotice=>_writer.HasError?"Settings could not be saved. Check access to your local data folder.":null;
     public event Action? Changed,OpenRequested;
     public event Action<double>? Frame;
     public List<double> Cadence { get; }=[];
@@ -51,6 +51,7 @@ public sealed class CompanionHost : IDisposable
     private readonly FrameClock _clock;
     private readonly DispatcherTimer _housekeeping;
     private readonly DispatcherTimer _notificationTimer;
+    private string? _publishedNotificationStatus,_publishedAppStatus;
     private readonly NotificationStabilizer _stabilizer=new();
     private readonly Forms.NotifyIcon _tray;
     private Forms.Screen _screen;
@@ -65,13 +66,14 @@ public sealed class CompanionHost : IDisposable
     private string? _ignored;
     private V2 _returnPosition;
     private NotificationApproach? _approach;
-    private Task _saveTask=Task.CompletedTask;
+    private readonly CoalescedStateWriter _writer;
+    internal long StateWrites=>_writer.Writes;
     private readonly bool _qa;
     internal bool IsTest=>_qa;
 
     public CompanionHost(string dataDir,bool qa=false)
     {
-        _qa=qa;Store=new StateStore(dataDir);var state=StateStore.Normalize(Store.Load());Settings=state.Settings;History=state.History;Usage=new(state.Usage);Visible=Settings.CatVisible;
+        _qa=qa;Store=new StateStore(dataDir);var state=StateStore.Normalize(Store.Load());_writer=new(Store.SaveAsync);Settings=state.Settings;History=state.History;Usage=new(state.Usage);Visible=Settings.CatVisible;
         CurrentProfile=ProfilePolicy.Resolve(Settings.Profiles,Settings.ActiveProfileId,Settings.AutomaticProfiles,DateTime.Now);
         _apps=new DesktopApps(()=>_qa&&TestForegroundWindow.HasValue?TestForegroundWindow.Value:Native.GetForegroundWindow());
         _screen=SelectedScreen();
@@ -91,7 +93,7 @@ public sealed class CompanionHost : IDisposable
         _housekeeping=new DispatcherTimer(DispatcherPriority.Background){Interval=TimeSpan.FromMilliseconds(250)};
         _housekeeping.Tick+=Housekeeping;_housekeeping.Start();
         _notificationTimer=new DispatcherTimer(DispatcherPriority.Background){Interval=TimeSpan.FromMilliseconds(100)};
-        _notificationTimer.Tick+=NotificationTick;_notificationTimer.Start();
+        _notificationTimer.Tick+=NotificationTick;UpdateScanTimer();
         TestNotification.Activated+=()=>Application.Current.Dispatcher.BeginInvoke(new Action(()=>OpenRequested?.Invoke()));
         if(!qa) { SystemEvents.SessionSwitch+=OnSessionSwitch;SystemEvents.PowerModeChanged+=OnPower;SystemEvents.DisplaySettingsChanged+=OnDisplay; }
         Cat.SetVisible(Visible,FrameClock.Now);Surface.Paint(Cat);Surface.Show(Visible);
@@ -137,8 +139,10 @@ public sealed class CompanionHost : IDisposable
         if(area!=Cat.WorkArea || Cat.Scale!=scale || Cat.Quiet!=quiet || Cat.ReducedMotion!=reduced||focusing!=_focusEligibility)CancelPaw();
         _focusEligibility=focusing;
         _screen=selected;Cat.Configure(area,scale,quiet,reduced,FrameClock.Now);
-        Cat.Accessory=Settings.Accessory;Cat.AccessoryColor=Settings.AccessoryColor;Cat.Appearance=Settings.Appearance;Cat.Activity=CurrentProfile.Activity;
+        ControlMotion.SetAllowed(!reduced);
+        Cat.Accessory=Settings.Accessory;Cat.AccessoryColor=Settings.AccessoryColor;Cat.Appearance=CurrentAppearance;Cat.Activity=CurrentProfile.Activity;
         if(monitorChanged)Cat.MoveTo(RestingPosition(),FrameClock.Now);
+        UpdateScanTimer();
     }
     public void Update(Preferences preferences)
     {
@@ -154,9 +158,12 @@ public sealed class CompanionHost : IDisposable
         bool cancel=Settings.Notifications!=preferences.Notifications||policyChanged;
         if(cancel)CancelPaw();
         if(policyChanged){_apps.Reset();_guardGate.Reset();CurrentApp=null;_ignored=null;}
-        var priorAppearance=Settings.Appearance;
+        var priorAppearance=CurrentAppearance;
         Settings=AppStateSettings(preferences);Configure();
-        if(priorAppearance!=Settings.Appearance){Cat.Tick(FrameClock.Now);if(!Cat.Hidden)Surface.Paint(Cat);}
+        if(priorAppearance!=CurrentAppearance){Cat.Tick(FrameClock.Now);if(!Cat.Hidden)Surface.Paint(Cat);}
+        if(!Settings.ShowGraceCountdown)ClearCountdown();
+        if(!Settings.BreakCues)DismissBreakCue();
+        if(!Settings.Purrs&&!Settings.Sounds)MeowSound.Stop();
         Save();Changed?.Invoke();
     }
     public void SelectProfile(string id)=>Update(Settings with{ActiveProfileId=id,AutomaticProfiles=false});
@@ -176,25 +183,28 @@ public sealed class CompanionHost : IDisposable
     private static Preferences AppStateSettings(Preferences preferences)=>StateStore.Normalize(new AppState{Settings=preferences}).Settings;
     public void ShowCat(bool visible)
     {
-        CancelPaw();Visible=visible;Settings=Settings with{CatVisible=visible};Cat.SetVisible(visible&&!IsSuppressed,FrameClock.Now);Surface.Show(visible&&!IsSuppressed);Save();Changed?.Invoke();
+        CancelPaw();Visible=visible;Settings=Settings with{CatVisible=visible};Cat.SetVisible(visible&&!IsSuppressed,FrameClock.Now);Surface.Show(visible&&!IsSuppressed);UpdateScanTimer();Save();Changed?.Invoke();
     }
     public void Park() { CancelPaw();Cat.ReturnTo(DesktopPlacement.Restore(null,Cat.WorkArea,Cat.Scale),FrameClock.Now);Changed?.Invoke(); }
     public void Perform(CatAction action)
     {
         Brain.UserAction(action);CancelPaw();if(!Visible)ShowCat(true);Cat.Perform(action,FrameClock.Now);
         if(action==CatAction.Meow && Settings.Sounds)MeowSound.Play();
+        if(action==CatAction.Pet && Settings.Purrs)MeowSound.PlayPurr();
         Changed?.Invoke();
     }
     public void Down(V2 p) { Brain.UserAction(CatAction.Drag);CancelPaw();Gesture.Down(p,Cat.Position);Cat.Stop(FrameClock.Now); }
     public void Move(V2 p) { if(Gesture.Move(p,5*DpiFor(_screen)) is V2 at)Cat.MoveTo(at,FrameClock.Now,true); }
     public void Up(V2 p)
     {
-        if(!Gesture.Pressed)return;Move(p);var action=Gesture.Up();Brain.UserAction(action);Cat.Perform(action,FrameClock.Now);
+        if(!Gesture.Pressed)return;Move(p);var action=Gesture.Up();if(action==CatAction.Meow)action=CatAction.Pet;Brain.UserAction(action);Cat.Perform(action,FrameClock.Now);
         if(action==CatAction.Meow && Settings.Sounds)MeowSound.Play();if(action==CatAction.Land)RememberSpot();Save();Changed?.Invoke();
+        if(action==CatAction.Pet && Settings.Purrs)MeowSound.PlayPurr();
     }
     public void LostCapture() { if(!Gesture.Pressed)return;Gesture.Cancel();Cat.Perform(CatAction.Land,FrameClock.Now);CancelPaw(); }
     public void CancelPaw()
     {
+        ClearCountdown();DismissBreakCue();
         if(Attempt.Target is { } target)_ignored=target.Identity;
         bool active=Attempt.Target!=null;
         Attempt.Cancel();_shell.Cancel();
@@ -230,6 +240,7 @@ public sealed class CompanionHost : IDisposable
         var plan=NotificationApproach.Plan(Cat.Position,Cat.WorkArea,Cat.Scale,target.Button);
         if(plan is null){if(target.AppWindow)AppGuardStatus="That window is outside this cat's selected monitor or reach";else NotificationStatus="That banner is outside this cat's reach";return;}
         if(!Attempt.Begin(target,now))return;
+        ClearCountdown();DismissBreakCue();
         if(Cat.Hidden){Cat.SetVisible(true,now);Surface.Show(true);}
         Cat.Angry=target.AppWindow;
         Surface.Raise();
@@ -258,7 +269,7 @@ public sealed class CompanionHost : IDisposable
             Surface.Paint(Cat);
             TickPaw(now);
         }
-        Frame?.Invoke(now);_clock.FramesPerSecond=Cat.SuggestedFps;
+        _hint?.Follow(Cat,Cat.Scale*CatRig.CharacterHeight/Settings.Size);Frame?.Invoke(now);_clock.FramesPerSecond=Cat.SuggestedFps;
     }
     private void TickPaw(double now)
     {
@@ -352,6 +363,8 @@ public sealed class CompanionHost : IDisposable
             }
         }
         if(Attempt.Target?.AppWindow!=true&&now>_angryUntil)Cat.Angry=false;
+        TickExtras(now,inputIdle,busy);
+        UpdateScanTimer();
         _clock.FramesPerSecond=Cat.SuggestedFps;
         if(now-_lastSave>15 && (Session.Status==SessionStatus.Running||Usage.Dirty))Save();
         Changed?.Invoke();
@@ -360,9 +373,9 @@ public sealed class CompanionHost : IDisposable
     private async void NotificationTick(object? sender,EventArgs e)
     {
         if(_disposed)return;double now=FrameClock.Now;
-        if(Attempt.Target?.Practice==true) { Changed?.Invoke();return; }
+        if(Attempt.Target?.Practice==true)return;
         if(_locked||_suspended||_disconnected||!Visible||Cat.ReducedMotion||Menu.IsOpen||(!Settings.Notifications&&!EffectiveSettings.AppGuard))
-        { Usage.Observe(null,DateOnly.FromDateTime(DateTime.Today),now);CurrentApp=null;_guardGate.Reset();if(Attempt.Target is not null)CancelPaw();NotificationStatus=!Settings.Notifications?"Paw helper is off":"Paw helper is resting";AppGuardStatus=!EffectiveSettings.AppGuard?"App guard is off for this profile":"App guard is resting";Changed?.Invoke();return; }
+        { UpdateScanTimer();PublishScanStatus();return; }
         if(Attempt.Stage==PawStage.Committing)return;
         if(Interlocked.CompareExchange(ref _scanBusy,1,0)!=0)return;
         int epoch=_shell.Epoch;
@@ -373,10 +386,11 @@ public sealed class CompanionHost : IDisposable
             if(_disposed || epoch!=_shell.Epoch)return;
             CurrentApp=app;
             Usage.Observe(!Brain.WantsSleep&&app?.Rule.DailyAllowanceMinutes>0?app.Rule.Path:null,DateOnly.FromDateTime(DateTime.Today),FrameClock.Now);
-            if(app is null)_guardGate.Reset();
+            if(app is null){_guardGate.Reset();ClearCountdown();}
             if(app is not null)
             {
                 var decision=AppDecision(app,FrameClock.Now);
+                ShowCountdown(app,decision,epoch);
                 if(!decision.CanAct)
                 {
                     AppGuardStatus=decision.Permission switch{GuardPermission.TemporaryException=>$"{app.Rule.Name} · allowed for {Math.Ceiling(decision.RemainingSeconds/60)} more min",GuardPermission.DailyAllowance=>$"{app.Rule.Name} · {Math.Ceiling(decision.RemainingSeconds/60)} min left today",_=>$"{app.Rule.Name} · a paw in {Math.Ceiling(decision.RemainingSeconds)} s"};
@@ -408,9 +422,29 @@ public sealed class CompanionHost : IDisposable
                     _apps.LastScan=="NoCaption"?"This app does not expose a supported close control":"Watching your selected apps";
         }
         finally { Interlocked.Exchange(ref _scanBusy,0); }
-        Changed?.Invoke();
+        PublishScanStatus();
     }
     private GuardDecision AppDecision(AppCloseCandidate app,double now)=>_guardGate.Evaluate(app.Rule,app.Target.Identity,Settings.AppExceptions,UsedToday(app.Rule.Path),DateTimeOffset.UtcNow,now);
+    private void PublishScanStatus()
+    {
+        if(_publishedNotificationStatus==NotificationStatus&&_publishedAppStatus==AppGuardStatus)return;
+        _publishedNotificationStatus=NotificationStatus;_publishedAppStatus=AppGuardStatus;Changed?.Invoke();
+    }
+    private void UpdateScanTimer()
+    {
+        if(_notificationTimer is null)return; // Configure also runs during construction.
+        bool enabled=!_disposed&&!_locked&&!_suspended&&!_disconnected&&Visible&&!Cat.ReducedMotion&&Menu?.IsOpen!=true&&
+            (Settings.Notifications||Settings.AppGuard&&CurrentProfile.GuardEnabled);
+        if(enabled){if(!_notificationTimer.IsEnabled)_notificationTimer.Start();return;}
+        if(_notificationTimer.IsEnabled)
+        {
+            _notificationTimer.Stop();ClearCountdown();CurrentApp=null;_guardGate.Reset();
+            Usage.Observe(null,DateOnly.FromDateTime(DateTime.Today),FrameClock.Now);
+            if(Attempt.Target is {Practice:false})CancelPaw();
+        }
+        NotificationStatus=!Settings.Notifications?"Paw helper is off":"Paw helper is resting";
+        AppGuardStatus=!(Settings.AppGuard&&CurrentProfile.GuardEnabled)?"App guard is off for this profile":"App guard is resting";
+    }
     private void CheckFullscreen()
     {
         IntPtr foreground=Native.GetForegroundWindow();
@@ -438,19 +472,14 @@ public sealed class CompanionHost : IDisposable
         if(Attempt.Target is null && !Gesture.Pressed)
             Settings=Settings with {ParkX=(Cat.Position.X-Cat.WorkArea.Left)/Cat.WorkArea.Width,ParkY=(Cat.Position.Y-Cat.WorkArea.Top)/Cat.WorkArea.Height};
         var snapshot=new AppState{Settings=Settings,Session=Session.Snapshot(),History=History.ToList(),Usage=Usage.Snapshot()};Usage.Saved();
-        _saveTask=SaveQuietly(snapshot);
-    }
-    private async Task SaveQuietly(AppState state)
-    {
-        try { await Store.SaveAsync(state).ConfigureAwait(false); }
-        catch(Exception e) when(e is IOException or UnauthorizedAccessException) { SaveNotice="Settings could not be saved. Check access to your local data folder."; }
+        _writer.Queue(snapshot);
     }
     public void Dispose()
     {
         if(_disposed)return;CancelPaw();Session.Pause(FrameClock.Now);Save();_disposed=true;
-        _housekeeping.Stop();_notificationTimer.Stop();_clock.Dispose();Menu.Close();Practice?.Close();Surface.Dispose();
+        _housekeeping.Stop();_notificationTimer.Stop();_clock.Dispose();Menu.Close();Practice?.Close();_hint?.Close();MeowSound.Stop();Surface.Dispose();
         _tray.Visible=false;_tray.Icon?.Dispose();_tray.Dispose();
         if(!_qa){SystemEvents.SessionSwitch-=OnSessionSwitch;SystemEvents.PowerModeChanged-=OnPower;SystemEvents.DisplaySettingsChanged-=OnDisplay;}
-        _saveTask.GetAwaiter().GetResult();
+        _writer.FlushAsync().GetAwaiter().GetResult();
     }
 }
