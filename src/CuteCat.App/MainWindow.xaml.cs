@@ -20,25 +20,29 @@ public partial class MainWindow : Window
     private string _current="Focus";
     private string _displayProfile="";
     private readonly Dictionary<string,TextBlock> _usageLabels=[];
+    private string _appliedTheme="Light";
+    private bool _darkTheme;
     public MainWindow(CompanionHost host)
     {
         InitializeComponent();_host=host;
         _updates.Changed+=()=>_updateRefresh?.Invoke();
         if(host.Settings.CheckUpdatesAutomatically&&!host.IsTest)_=_updates.Check();
         foreach(string name in new[]{"Focus","Profiles","Your cat","App guard","Quiet desktop","Settings"})
-        {var button=Button(name,()=>Navigate(name));button.MinHeight=34;button.Padding=new Thickness(13,7,13,7);button.Margin=new Thickness(4,0,0,0);button.BorderThickness=new Thickness(0);Navigation.Children.Add(button);_tabs[name]=button;}
+        {var button=Button(name,()=>Navigate(name));button.SetResourceReference(StyleProperty,"NavigationButton");button.MinHeight=34;button.Padding=new Thickness(13,7,13,7);button.Margin=new Thickness(4,0,0,0);Navigation.Children.Add(button);_tabs[name]=button;}
         SetTheme(_host.Settings.Theme);Navigate("Focus");
+        SourceInitialized+=(_,_)=>ApplyTitleBar(this);
+        SystemEvents.UserPreferenceChanged+=WindowsAppearanceChanged;
         host.Frame+=UpdatePreview;host.Changed+=Refresh;
         Closing+=OnClosing;
         IsVisibleChanged+=(_,_)=>{if(IsVisible){_lastPreview=0;Refresh();}};
-        Closed+=(_,_)=>{host.Frame-=UpdatePreview;host.Changed-=Refresh;_preview.Dispose();};
+        Closed+=(_,_)=>{host.Frame-=UpdatePreview;host.Changed-=Refresh;SystemEvents.UserPreferenceChanged-=WindowsAppearanceChanged;_preview.Dispose();};
     }
     private void OnClosing(object? sender,CancelEventArgs e) { e.Cancel=true;Hide(); }
     public void Navigate(string name)
     {
         if(_preview.Parent is Panel old)old.Children.Remove(_preview);
         if(_preview.Parent is Border border)border.Child=null;
-        _current=name;_updateRefresh=null;_displayProfile=_host.CurrentProfile.Id;_usageLabels.Clear();Page.Children.Clear();Page.ColumnDefinitions.Clear();Page.RowDefinitions.Clear();
+        _current=name;_updateRefresh=null;_appearanceViews.Clear();_wardrobeLook=null;_displayProfile=_host.CurrentProfile.Id;_usageLabels.Clear();Page.Children.Clear();Page.ColumnDefinitions.Clear();Page.RowDefinitions.Clear();
         _timer=null;_sessionLabel=null;_summary=null;_notificationLabel=null;_primary=null;_end=null;_catLabel=null;_testLabel=null;_guardLabel=null;
         foreach(var (key,button) in _tabs)button.SetResourceReference(BackgroundProperty,key==name?"AccentSoft":"Paper");
         switch(name){case "Focus":FocusPage();break;case "Profiles":ProfilesPage();break;case "Your cat":CatPage();break;case "App guard":AppsPage();break;case "Quiet desktop":NotificationsPage();break;case "Updates":UpdatesPage();break;default:SettingsPage();break;}
@@ -61,9 +65,9 @@ public partial class MainWindow : Window
     }
     private static WrapPanel Row(params UIElement[] items)
     {var row=new WrapPanel{Margin=new Thickness(0,0,0,14)};foreach(var i in items){if(i is FrameworkElement f)f.Margin=new Thickness(0,0,8,8);row.Children.Add(i);}return row;}
-    private (StackPanel left,StackPanel right) Columns()
+    private (StackPanel left,StackPanel right) Columns(double leftWeight=1.12,double rightWeight=1)
     {
-        Page.ColumnDefinitions.Add(new(){Width=new GridLength(1.12,GridUnitType.Star)});Page.ColumnDefinitions.Add(new(){Width=new GridLength(30)});Page.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});
+        Page.ColumnDefinitions.Add(new(){Width=new GridLength(leftWeight,GridUnitType.Star)});Page.ColumnDefinitions.Add(new(){Width=new GridLength(30)});Page.ColumnDefinitions.Add(new(){Width=new GridLength(rightWeight,GridUnitType.Star)});
         var left=new StackPanel();var right=new StackPanel();Grid.SetColumn(right,2);Page.Children.Add(left);Page.Children.Add(right);return(left,right);
     }
     private void PreviewCard(StackPanel parent,string top,string caption)
@@ -101,27 +105,6 @@ public partial class MainWindow : Window
         right.Children.Add(Text("Choose distracting desktop apps in App guard. Browser URL rules will come later.",11,"Muted"));
         right.Children.Add(Button("Choose distracting apps",()=>Navigate("App guard")));
         right.Children.Add(Button("Profile · "+_host.CurrentProfile.Name,()=>Navigate("Profiles")));
-    }
-    private void CatPage()
-    {
-        var(left,right)=Columns();left.Children.Add(Eyebrow("Meet your little companion"));left.Children.Add(Title("Small paws.\nBig personality."));
-        left.Children.Add(Text("A curious little oat-coloured cat, with nowhere urgent to be.",14,"Muted",20));
-        left.Children.Add(Text("Call your cat",12,"Muted",7));var nickname=new TextBox{Text=_host.Settings.Nickname,MaxLength=24};
-        System.Windows.Automation.AutomationProperties.SetName(nickname,"Cat nickname");nickname.LostFocus+=(_,_)=>_host.Update(_host.Settings with{Nickname=nickname.Text});nickname.Margin=new Thickness(0,0,0,17);left.Children.Add(nickname);
-        left.Children.Add(Text("Say hello",12,"Muted",8));
-        left.Children.Add(Row(Button("Walk",()=>_host.Perform(CatAction.Walk)),Button("Run",()=>_host.Perform(CatAction.Run)),Button("Meow",()=>_host.Perform(CatAction.Meow))));
-        left.Children.Add(Row(Button("Groom",()=>_host.Perform(CatAction.Groom)),Button("Play",()=>_host.Perform(CatAction.Play)),Button("Sleep",()=>_host.Perform(CatAction.Sleep)),Button("Wake",()=>_host.Perform(CatAction.Wake)),Button("Turn around",()=>_host.Perform(CatAction.Turn))));
-        left.Children.Add(Check("Quiet company · stay nearby",_host.Settings.Quiet,v=>_host.Update(_host.Settings with{Quiet=v})));
-        left.Children.Add(Row(Button("Show cat",()=>_host.ShowCat(true)),Button("Hide cat",()=>_host.ShowCat(false)),Button("Park",()=>_host.Park())));
-        PreviewCard(right,"Entirely drawn in code","Breathing, blinking, and being a cat.");
-        right.Children.Add(Text("Dress up",16,"Ink",8));
-        right.Children.Add(Choice("Pet accessory",new[]{(PetAccessory.None,"Just my cat"),(PetAccessory.Bandana,"Soft bandana"),(PetAccessory.BowTie,"Little bow tie"),(PetAccessory.BellCollar,"Bell collar"),(PetAccessory.Flower,"Daisy bloom")},_host.Settings.Accessory,v=>_host.Update(_host.Settings with{Accessory=v})));
-        right.Children.Add(Choice("Accessory colour",new[]{("Sage","Sage green"),("Rose","Dusty rose"),("Sky","Cloud blue"),("Plum","Soft lavender"),("Honey","Warm honey")},_host.Settings.AccessoryColor,v=>_host.Update(_host.Settings with{AccessoryColor=v})));
-        left.Children.Add(Text("Personality",12,"Muted",8));
-        left.Children.Add(Choice("Cat activity",new[]{(ActivityLevel.Calm,"Calm · more grooming, gentle walks"),(ActivityLevel.Balanced,"Curious · a little of everything"),(ActivityLevel.Playful,"Playful · more runs and little hops")},_host.CurrentProfile.Activity,v=>_host.EditProfile(_displayProfile,p=>p with{Activity=v})));
-        left.Children.Add(Check("Nap when I'm away",_host.Settings.IdleNaps,v=>_host.Update(_host.Settings with{IdleNaps=v})));
-        left.Children.Add(Choice("Idle time before napping",new[]{(1,"After 1 minute idle"),(3,"After 3 minutes idle"),(5,"After 5 minutes idle"),(10,"After 10 minutes idle"),(15,"After 15 minutes idle")},_host.Settings.IdleMinutes,v=>_host.Update(_host.Settings with{IdleMinutes=v})));
-        left.Children.Add(Text("Your cat curls up with a tiny nose bubble, then stretches awake when you return. Focus mode and quiet company keep activity gentle.",12,"Muted",12));
     }
     private void NotificationsPage()
     {
@@ -178,6 +161,7 @@ public partial class MainWindow : Window
         string profileId=_host.CurrentProfile.Id;
         var apps=await Task.Run(DesktopApps.OpenApps);
         var dialog=new Window{Owner=this,Title="Choose a distracting app",Width=510,Height=350,ResizeMode=ResizeMode.NoResize,WindowStartupLocation=WindowStartupLocation.CenterOwner};
+        dialog.SourceInitialized+=(_,_)=>ApplyTitleBar(dialog);
         var content=new StackPanel{Margin=new Thickness(24)};dialog.Content=content;
         content.Children.Add(Text("Which app gets in the way?",23,"Ink",14));content.Children.Add(Text("Pick an open desktop app, or browse to its executable.",13,"Muted",15));
         var select=new ComboBox{ItemsSource=apps,DisplayMemberPath="Name",Margin=new Thickness(0,0,0,12)};
@@ -203,6 +187,7 @@ public partial class MainWindow : Window
         var(left,right)=Columns();left.Children.Add(Eyebrow("Make yourself at home"));left.Children.Add(Title("The little details."));
         left.Children.Add(Text("Appearance",12,"Muted",8));
         left.Children.Add(Row(Button("Light",()=>Theme("Light")),Button("Dark",()=>Theme("Dark")),Button("System",()=>Theme("System"))));
+        left.Children.Add(Choice("Title bar colour",new[]{("Theme","Title bar · match app theme"),("Accent","Title bar · accent colour"),("Windows","Title bar · Windows default")},_host.Settings.TitleBarStyle,v=>{_host.Update(_host.Settings with{TitleBarStyle=v});ApplyTitleBar(this);}));
         left.Children.Add(Text("Cat size",12,"Muted",8));left.Children.Add(Row(Button("Small",()=>_host.Update(_host.Settings with{Size=96})),Button("Medium",()=>_host.Update(_host.Settings with{Size=128})),Button("Large",()=>_host.Update(_host.Settings with{Size=160}))));
         left.Children.Add(Text("Your cat's monitor",12,"Muted",8));
         var monitor=new ComboBox();foreach(var screen in Forms.Screen.AllScreens)monitor.Items.Add(screen.DeviceName);
@@ -243,10 +228,12 @@ public partial class MainWindow : Window
     private void Theme(string name) { SetTheme(name);_host.Update(_host.Settings with{Theme=name}); }
     public void SetTheme(string name)
     {
+        _appliedTheme=name;
         bool dark=name=="Dark";
         if(name=="System") {using var key=Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");dark=key?.GetValue("AppsUseLightTheme") is int v&&v==0;}
         string[] keys=["Paper","Panel","Ink","Muted","Line","Accent","AccentSoft","ButtonInk"];
-        string[] colors=dark?["#202B25","#2C382F","#F2F0E2","#B9C4B6","#455347","#B7CEA9","#394D3E","#202F24"]:["#F8F7F0","#EFEEE3","#293C32","#626D60","#DADDD0","#365841","#E0E8D9","#FAFAF4"];
+        _darkTheme=dark;
+        string[] colors=dark?["#171923","#222532","#F4F1EA","#B3B8CA","#3D4358","#BBC1FF","#33394F","#1A1D2D"]:["#F8F7FC","#EEEFF7","#25283B","#626980","#D8DCEA","#555FA1","#E5E7FA","#FFFFFF"];
         for(int i=0;i<keys.Length;i++)Application.Current.Resources[keys[i]]=new SolidColorBrush((Color)ColorConverter.ConvertFromString(colors[i]));
         if(SystemParameters.HighContrast)
         {
@@ -255,10 +242,14 @@ public partial class MainWindow : Window
             Application.Current.Resources["Accent"]=SystemColors.HighlightBrush;Application.Current.Resources["ButtonInk"]=SystemColors.HighlightTextBrush;
             Application.Current.Resources["Line"]=SystemColors.WindowTextBrush;Application.Current.Resources["AccentSoft"]=SystemColors.ControlBrush;
         }
+        foreach(Window window in Application.Current.Windows)if(window.WindowStyle!=WindowStyle.None)ApplyTitleBar(window);
     }
+    private void ApplyTitleBar(Window window)=>ThemeChrome.Apply(window,_host.Settings.TitleBarStyle,_darkTheme);
+    private void WindowsAppearanceChanged(object sender,UserPreferenceChangedEventArgs e)=>Dispatcher.BeginInvoke(new Action(()=>SetTheme(_appliedTheme)));
     public void Refresh()
     {
         if(!IsVisible)return;
+        RefreshWardrobe();
         if(_displayProfile!=_host.CurrentProfile.Id&&_current is "App guard" or "Profiles" or "Your cat" or "Focus"){Navigate(_current);return;}
         foreach(var pair in _usageLabels)
         {

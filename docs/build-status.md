@@ -1,5 +1,21 @@
 # Current build status
 
+## 0.9.1 preview — publication approved
+
+Removed the pointer-click outline from the top navigation while keeping its selected pill and a keyboard-only underline. All text inputs now have rounded corners, consistent padding and themed focus/caret/selection. The small minutes field was visually checked with `180` to avoid clipped text. Build passed without warnings; the existing 12 appearance checks passed and light/dark focused-navigation/input exports were inspected in `artifacts/controls-v091-final`. Core, state and cat behavior are unchanged from 0.9.0. The user explicitly approved the GitHub push and installer release on 13 September.
+
+Installed locally as 0.9.1; all 14 installer/signature/preservation checks passed in `artifacts/install-v091-local`. Installer size: 58,824,680 bytes; SHA-256 `C397C2FFFC1CE74F69E8453CE0E6591F37C53F35B7567739B121815A1277364E`. Existing settings and history were preserved. This same tested installer is the approved release artifact; signing remains the protected preview identity, not a publicly verified publisher.
+
+## 0.9.0 local appearance preview — not published
+
+During the 0.9.0 stage, the user paused publication pending PC testing. Implemented real coat colours/custom hex, independent hat/neckwear/collar slots in a tabbed wardrobe, the charcoal/periwinkle UI palette, and configurable native Windows title-bar colours. See [current contract](20-appearance-and-theme.md). The later 0.9.1 publication approval is recorded above.
+
+Verified locally: zero-warning build, **167 core checks**, **79 native regression checks**, and **12 appearance/caption checks**, all passed. Native caption pixels were inspected in light and dark mode, as were wardrobe controls and layered accessories across poses. Evidence: `artifacts/appearance-v090-final` and `artifacts/qa-v090-local`. State schema is 4; schema-3 state gets a preserved backup. No new permission or monitoring scope was added. User visual acceptance is pending.
+
+Installed locally through `CuteCat-0.9.0-Setup.exe`: **14 installation/signature/preservation checks passed** in `artifacts/install-v090-local`. The existing protected preview signing identity was reused; no new trust acknowledgment was needed. The 0.8 and 0.9 installers are retained in Recovery. Local installer: 58,833,968 bytes, SHA-256 `E1C23733B95DF25C4D697C84199E3AEDD7A0304231141F74F70D1F01BBAAE5B1`. No GitHub push, tag or release was performed for this work.
+
+The sections below describe previously published 0.8/0.7 versions and their historical release checks.
+
 ## 0.8.0 preview — profiles and reliability
 
 Implemented Work/Study/Break profiles and weekly schedules, per-app exceptions/grace/daily allowances, local bounded usage totals, per-monitor resting spots, settling during work, optional focused-control avoidance, procedural ear twitches/notice/yawn/celebration, and profile switching from the themed pet/tray submenu. Browser URL/tab work remains deferred by user instruction.

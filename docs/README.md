@@ -1,6 +1,6 @@
 # Documentation map
 
-Current implementation: **0.8.0 preview**. Start with [getting started](getting-started.md), [build status](build-status.md), and [profiles and reliability](19-profiles-and-reliability.md). The 0.7 handoff is historical evidence.
+Current implementation: **0.9.1 appearance preview**. On 13 September 2026, after the local refinements, the user explicitly approved pushing the source and publishing the installer. The earlier publication hold is lifted for this release. Start with [appearance/theme](20-appearance-and-theme.md), [build status](build-status.md), and [profiles/reliability](19-profiles-and-reliability.md).
 
 The latest explicit user direction is a simple rounded, block-like cat drawn and animated entirely in code. This supersedes the previous hand-painted/sprite pipeline. The Azure image authorization remains available for future optional artwork; no endpoint or key is used by this build. Supplied images guide the degree of simplicity, not a contour or character to copy.
 
@@ -32,6 +32,7 @@ This checkout contained only documentation at task entry. Historical 0.2/0.3 imp
 | [Windows installer](17-windows-installer.md) | Native wizard, Installed apps registration, migration, uninstall and certificate ownership |
 | [Focus companion](18-focus-companion.md) | Explicit app rules, normal paw close, idle behavior, accessories, menus and privacy |
 | [Profiles and reliability](19-profiles-and-reliability.md) | Profiles/schedules, allowances/exceptions, monitor manners, personality, protected signing, verified updates/recovery |
+| [Appearance and theme](20-appearance-and-theme.md) | Local-only wardrobe, coat colours, periwinkle theme, native caption and migration |
 | [Current handoff](handoff-2026-09-12-customization.md) | 0.7 implementation, executed checks, accessory correction and release |
 
 ## Actual scope

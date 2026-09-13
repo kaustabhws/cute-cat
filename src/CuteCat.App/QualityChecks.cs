@@ -12,7 +12,7 @@ using System.Windows.Xps.Packaging;
 
 namespace CuteCat.App;
 
-public static class QualityChecks
+public static partial class QualityChecks
 {
     public static bool Failed {get;private set;}
     private static readonly List<object> Checks=[];

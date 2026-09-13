@@ -1,5 +1,11 @@
 # Decisions and risks
 
+## D28 — local wardrobe and theme revision (13 September 2026)
+
+**Publication follow-up, 13 September:** after 0.9.1 was installed and checked locally, the user explicitly requested the source push and installer release. The hold below is now satisfied; publish the tested 0.9.1 preview to `kaustabhws/cute-cat`. This does not expand monitoring, signing trust or browser scope.
+
+The user requested coat colour repair, independent hats/neckwear/collars with tabbed UI, theme-aware native title-bar colours, and a replacement for the green UI palette. Use opaque RGB coat/accessory colours, a cached procedural palette, native DWM caption styling, and charcoal/periwinkle controls. Schema 4 preserves schema 3 before migration. No new observation or permission scope. **No GitHub push or release until the user approves PC testing**, superseding D27's publication direction. Contract: [20-appearance-and-theme.md](20-appearance-and-theme.md).
+
 ## D27 — 0.8 profile and reliability scope (12 September 2026)
 
 The user authorized profiles, per-app exceptions/allowances, desktop awareness, personality and release hardening, excluding browser integration. They explicitly permitted deferred live testing under RDP, requested GitHub source/release publication, and selected protected preview signing. Contract: [19-profiles-and-reliability.md](19-profiles-and-reliability.md).

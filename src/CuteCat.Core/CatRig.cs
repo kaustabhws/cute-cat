@@ -9,7 +9,7 @@ public readonly record struct CatPose(
     V2 HindFar, V2 ForeFar, V2 HindNear, V2 ForeNear,
     double BodyYaw=1, double HeadYaw=1, double TailYaw=1, V2? PawEnd=null,
     double SleepPhase=0,double SleepBubble=0,double Anger=0,PetAccessory Accessory=PetAccessory.None,string AccessoryColor="Sage",
-    double EarLeft=0,double EarRight=0,double Celebration=0)
+    double EarLeft=0,double EarRight=0,double Celebration=0,PetAppearance? Appearance=null)
 {
     public static CatPose Blend(CatPose a, CatPose b, double t) => new(
         Ease.Mix(a.Sit,b.Sit,t), Ease.Mix(a.Curl,b.Curl,t), Ease.Mix(a.Bob,b.Bob,t),

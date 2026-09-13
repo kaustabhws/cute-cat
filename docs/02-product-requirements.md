@@ -1,5 +1,7 @@
 # Product requirements
 
+**0.9.1 user update (13 September):** STYLE-02 requires real coat/custom RGB colours, separate hat/neckwear/collar slots with their own colours, a live tabbed wardrobe, pose-aligned accessories, and migration of old selections. UI-CHROME requires native caption colour matching the app or accent, with Windows default available. UI-PALETTE replaces green with charcoal/periwinkle and readable text in both themes. The final refinement removes the top-navigation click border and rounds text inputs. After local testing, the user explicitly approved GitHub source and installer publication. Acceptance and evidence: [appearance/theme](20-appearance-and-theme.md).
+
 **0.8 user-authorized additions:** the current requirements below supplement the 0.7 companion milestone; browser work remains deferred.
 
 | ID | Requirement | Acceptance |

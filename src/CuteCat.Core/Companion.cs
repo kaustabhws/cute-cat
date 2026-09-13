@@ -23,6 +23,7 @@ public sealed class Companion
     public ActivityLevel Activity { get; set; }=ActivityLevel.Balanced;
     public PetAccessory Accessory { get; set; }
     public string AccessoryColor { get; set; }="Sage";
+    public PetAppearance? Appearance { get; set; }
     public bool Angry { get; set; }
     public bool AutonomyPaused { get; set; }
     private double _anger;
@@ -169,7 +170,7 @@ public sealed class Companion
         if(Action==CatAction.Notice)_turn.Look(Ease.Mix(_lookFrom,_lookTo,Ease.Smooth(ActionAge/.22)));
         var orientation=_turn.Current;
         Pose=CatPose.Blend(_blendFrom,targetPose,Ease.Smooth((now-_blendAt)/.32)) with
-        { BodyYaw=orientation.Body,HeadYaw=orientation.Head,TailYaw=orientation.Tail,Anger=_anger,Accessory=Accessory,AccessoryColor=AccessoryColor };
+        { BodyYaw=orientation.Body,HeadYaw=orientation.Head,TailYaw=orientation.Tail,Anger=_anger,Accessory=Accessory,AccessoryColor=AccessoryColor,Appearance=Appearance };
     }
 
     private void Arrive(V2 target,double now)

@@ -1,0 +1,19 @@
+# Local appearance handoff — 13 September 2026
+
+**Latest direction:** the user has now explicitly approved pushing all changes and publishing the tested 0.9.1 installer. This supersedes the publication hold recorded in the historical local-work notes below. The approved artifact/hash are in build status; no rebuild or new signing identity is required for publication.
+
+**0.9.1 follow-up:** App.xaml now has a separate NavigationButton style (filled pill on click, keyboard-only underline) and one rounded TextBox template. MainWindow applies the navigation style. The content host must not add the TextBox padding again as a margin; that clips compact inputs. The appearance diagnostic now exports focused navigation and rounded inputs for visual review. The build and existing 12 appearance checks passed; reviewed evidence is `artifacts/controls-v091-final`. The version bump is local only. No new automated state tests were added for this styling change.
+
+0.9.1 was installed locally with all 14 installer/signature/preservation checks passing (`artifacts/install-v091-local`). Its checksum is in build status. GitHub publication is still paused. The rest of this handoff describes the preceding 0.9.0 feature work.
+
+Requirements STYLE-02, UI-CHROME and UI-PALETTE are implemented for local PC testing. **Do not push or release until the user explicitly approves.** No remote Git operation was performed in this task; all changes remain local and uncommitted.
+
+The original colour setting only changed accessories, while body brushes were fixed cream. `PetAppearance.cs` adds an opaque coat colour and independently coloured hat/neckwear/collar slots. State schema 4 preserves schema 3 and migrates legacy selections. `Companion`/`CompanionHost` propagate appearance to the painted pose and repaint edits immediately. `CatPainter.Wardrobe.cs` caches coat brushes and draws original head-anchored hats, shoulder folds and layered collars behind the chin. `MainWindow.Wardrobe.cs` provides Coat, Hats, Neckwear, Collars and Personality tabs with live preview, visual tiles, swatches and validated custom hex input.
+
+`ThemeChrome.cs` uses documented DWM caption/text colours; native controls and snap behavior remain. Green UI surfaces/accent were replaced by charcoal/periwinkle, including menus, tabs and title bar. Caption choices are app theme, accent or Windows default; system changes/high contrast refresh appropriately. Caption/text setters cannot reliably be read back through DwmGetWindowAttribute, so the final diagnostic checks actual caption pixels from this app's own HWND. No production screen capture or monitoring was added.
+
+Checks run: zero-warning Release build; 167 core tests; 79 native regression checks; 12 appearance tests; 14 installer/signature/preservation checks. All passed. Visuals were reviewed in both themes and across poses. Evidence remains ignored under `artifacts/appearance-v090-final`, `artifacts/qa-v090-local`, and `artifacts/install-v090-local`. Curated images: `docs/images/wardrobe-dark.png` and `wardrobe-poses.png`.
+
+Installer is local `dist/installer/CuteCat-0.9.0-Setup.exe`, SHA-256 `E1C23733B95DF25C4D697C84199E3AEDD7A0304231141F74F70D1F01BBAAE5B1`. Installed in the existing Program Files location with the same approved protected preview certificate. User preferences/history are preserved. Recovery retains 0.8 and 0.9. The signing key remains in the Windows CNG store and must never be exported or committed.
+
+Next step: the user's visual/interaction acceptance on their PC, especially title-bar choice, custom coat colour and accessory combinations. No new live notification or wider mixed-DPI/account matrix is claimed. Browser integration remains deferred. Follow [the appearance contract](20-appearance-and-theme.md) for data/renderer details.

@@ -44,7 +44,8 @@ public partial class App : Application
             if(!e.Args.Contains("--tray") && benchmark is null && shellCheck is null)main.Show();
             if(qa is not null)
             {
-                if(e.Args.Contains("--policy-checks"))await QualityChecks.Policies(_host,Path.GetFullPath(qa),Arg("--app-fixture")!);
+                if(e.Args.Contains("--appearance-checks"))await QualityChecks.Appearance(host:_host,window:main,dir:Path.GetFullPath(qa));
+                else if(e.Args.Contains("--policy-checks"))await QualityChecks.Policies(_host,Path.GetFullPath(qa),Arg("--app-fixture")!);
                 else if(e.Args.Contains("--features-only"))await QualityChecks.Features(_host,main,Path.GetFullPath(qa),Arg("--app-fixture")!);
                 else await QualityChecks.Run(_host,main,Path.GetFullPath(qa),Arg("--app-fixture"));
                 Shutdown(QualityChecks.Failed?1:0);

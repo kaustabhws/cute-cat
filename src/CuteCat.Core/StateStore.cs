@@ -7,6 +7,8 @@ public sealed record Preferences
     public string Nickname { get; init; }="Pip";
     public int Size { get; init; }=128;
     public string Theme { get; init; }="Light";
+    public string TitleBarStyle { get; init; }="Theme";
+    public PetAppearance? Appearance { get; init; }
     public bool Quiet { get; init; }
     public bool ReducedMotion { get; init; }
     public bool FollowWindowsMotion { get; init; }
@@ -36,7 +38,7 @@ public sealed record Preferences
 }
 public sealed record AppState
 {
-    public int Schema { get; init; }=3;
+    public int Schema { get; init; }=4;
     public Preferences Settings { get; init; }=new();
     public SessionSnapshot Session { get; init; }=new();
     public List<FocusRecord> History { get; init; }=[];
@@ -73,9 +75,10 @@ public sealed class StateStore(string directory)
                 ReadOnly=true;Notice="This settings format is not recognized. The original file is preserved; changes will not be saved.";return new();
             }
             var state=JsonSerializer.Deserialize<AppState>(json,Options)??throw new JsonException();
-            if(state.Schema is not (1 or 2 or 3)) { ReadOnly=true;Notice="These settings belong to a different app version. The original file is preserved; changes will not be saved.";return new(); }
+            if(state.Schema is not (1 or 2 or 3 or 4)) { ReadOnly=true;Notice="These settings belong to a different app version. The original file is preserved; changes will not be saved.";return new(); }
             if(state.Schema==1&&!File.Exists(StatePath+".schema1.json"))File.Copy(StatePath,StatePath+".schema1.json");
             if(state.Schema==2&&!File.Exists(StatePath+".schema2.json"))File.Copy(StatePath,StatePath+".schema2.json");
+            if(state.Schema==3&&!File.Exists(StatePath+".schema3.json"))File.Copy(StatePath,StatePath+".schema3.json");
             return Normalize(state);
         }
         catch(Exception e) when(e is JsonException or IOException or UnauthorizedAccessException or ArgumentException)
@@ -149,7 +152,9 @@ public sealed class StateStore(string directory)
         if(profiles.Count==0)profiles=ProfilePolicy.Defaults(rules,Enum.IsDefined(p.Activity)?p.Activity:ActivityLevel.Balanced);
         var active=profiles.FirstOrDefault(x=>x.Id==p.ActiveProfileId)??profiles[0];
         var today=DateOnly.FromDateTime(DateTime.Today);
-        return state with { Schema=3,Settings=p with { Nickname=name[..Math.Min(24,name.Length)],Size=p.Size is 96 or 128 or 160?p.Size:128,
+        return state with { Schema=4,Settings=p with { Nickname=name[..Math.Min(24,name.Length)],Size=p.Size is 96 or 128 or 160?p.Size:128,
+            Appearance=(p.Appearance??PetAppearance.FromLegacy(p.Accessory,p.AccessoryColor)).Normalize(),
+            TitleBarStyle=p.TitleBarStyle is "Theme" or "Accent" or "Windows"?p.TitleBarStyle:"Theme",
             IdleMinutes=Math.Clamp(p.IdleMinutes,1,30),
             Accessory=Enum.IsDefined(p.Accessory)?p.Accessory:PetAccessory.None,
             AccessoryColor=p.AccessoryColor is "Sage" or "Rose" or "Sky" or "Plum" or "Honey"?p.AccessoryColor:"Sage",

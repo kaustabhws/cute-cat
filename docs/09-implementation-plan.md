@@ -1,5 +1,7 @@
 # Implementation plan
 
+**Current 0.9.1 task:** publish the tested appearance/control changes and installer to the authorized GitHub repository. The user explicitly approved this on 13 September after the local title-bar, coat/wardrobe, palette, navigation and input refinements. That approval supersedes the earlier local-only hold. Preserve the tested installer and its checksum, exclude private artifacts/keys, and verify CI and release assets. See [appearance contract](20-appearance-and-theme.md).
+
 **Current 0.8 priority:** profiles/schedules, app exceptions and allowances, monitor-aware resting, personality, durable preview signing, verified updates/recovery and automated Windows checks. Browser integration is explicitly excluded by the user. Complete packaging and publish source/release to the authorized GitHub repository. Desktop checks unavailable under RDP may be documented for later; do not block delivery on them. See [contract](19-profiles-and-reliability.md).
 
 **Current user priority — focus companion 0.7:** implement explicit desktop-app rules with normal close/reminder behavior, angry paw contact, idle sleep/wake, accessories and modern controls/menus; then update the installer and publish source plus the installer release to the user-named GitHub repository. App closing is authorized only for user-selected apps; no process kill or save-prompt automation. Browser URL detection is deferred. See [focus companion contract](18-focus-companion.md).

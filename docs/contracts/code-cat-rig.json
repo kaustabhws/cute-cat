@@ -1,5 +1,5 @@
 {
-  "contractVersion": 5,
+  "contractVersion": 6,
   "characterRevision": 2,
   "character": "oat-cat-01",
   "renderer": "original-cubic-paths",
@@ -84,6 +84,13 @@
     "hidden": 0
   },
   "runtimeImageAssets": false,
+  "appearance": {
+    "coat": "opaque RGB hex, cached palette; contrast-aware face",
+    "slots": ["Hat", "Neckwear", "Collar"],
+    "independentColors": true,
+    "neckLayer": "collar then neckwear, both behind the chin",
+    "hatAnchor": "head transform; flower additionally follows ear hinge"
+  },
   "source": [
     "src/CuteCat.Core/CatRig.cs",
     "src/CuteCat.Core/TurnTransition.cs",

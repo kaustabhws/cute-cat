@@ -127,11 +127,13 @@ public sealed class CompanionHost : IDisposable
         if(area!=Cat.WorkArea || Cat.Scale!=scale || Cat.Quiet!=quiet || Cat.ReducedMotion!=reduced||focusing!=_focusEligibility)CancelPaw();
         _focusEligibility=focusing;
         _screen=selected;Cat.Configure(area,scale,quiet,reduced,FrameClock.Now);
-        Cat.Accessory=Settings.Accessory;Cat.AccessoryColor=Settings.AccessoryColor;Cat.Activity=CurrentProfile.Activity;
+        Cat.Accessory=Settings.Accessory;Cat.AccessoryColor=Settings.AccessoryColor;Cat.Appearance=Settings.Appearance;Cat.Activity=CurrentProfile.Activity;
         if(monitorChanged)Cat.MoveTo(RestingPosition(),FrameClock.Now);
     }
     public void Update(Preferences preferences)
     {
+        if(ReferenceEquals(preferences.Appearance,Settings.Appearance)&&(Settings.Accessory!=preferences.Accessory||Settings.AccessoryColor!=preferences.AccessoryColor))
+            preferences=preferences with{Appearance=PetAppearance.FromLegacy(preferences.Accessory,preferences.AccessoryColor) with{CoatColor=Settings.Appearance?.CoatColor??PetAppearance.Oat}};
         // Schema-2 callers edit the active profile through these compatibility fields.
         if(ReferenceEquals(preferences.Profiles,Settings.Profiles)&&preferences.ActiveProfileId==Settings.ActiveProfileId&&
             (!Settings.AppRules.SequenceEqual(preferences.AppRules)||Settings.Activity!=preferences.Activity))
@@ -142,7 +144,10 @@ public sealed class CompanionHost : IDisposable
         bool cancel=Settings.Notifications!=preferences.Notifications||policyChanged;
         if(cancel)CancelPaw();
         if(policyChanged){_apps.Reset();_guardGate.Reset();CurrentApp=null;_ignored=null;}
-        Settings=AppStateSettings(preferences);Configure();Save();Changed?.Invoke();
+        var priorAppearance=Settings.Appearance;
+        Settings=AppStateSettings(preferences);Configure();
+        if(priorAppearance!=Settings.Appearance){Cat.Tick(FrameClock.Now);if(!Cat.Hidden)Surface.Paint(Cat);}
+        Save();Changed?.Invoke();
     }
     public void SelectProfile(string id)=>Update(Settings with{ActiveProfileId=id,AutomaticProfiles=false});
     public void EditProfile(string id,Func<FocusProfile,FocusProfile> change)=>Update(Settings with{Profiles=Settings.Profiles.Select(p=>p.Id==id?change(p):p).ToList()});

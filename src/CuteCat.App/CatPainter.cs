@@ -5,7 +5,7 @@ using CuteCat.Core;
 namespace CuteCat.App;
 
 /// <summary>Original soft, toy-like cat. Orientation moves the rig in depth; it never flips a bitmap.</summary>
-public sealed class CatPainter : IDisposable
+public sealed partial class CatPainter : IDisposable
 {
     private readonly SolidBrush _cream=new(Color.FromArgb(252,240,213));
     private readonly SolidBrush _ink=new(Color.FromArgb(64,61,52));
@@ -23,6 +23,7 @@ public sealed class CatPainter : IDisposable
 
     public void Draw(Graphics g,CatPose p,float scale,float offsetX=0,float offsetY=0)
     {
+        ApplyCoat(Appearance(p).CoatColor);
         var saved=g.Save();
         g.SmoothingMode=SmoothingMode.AntiAlias;g.PixelOffsetMode=PixelOffsetMode.HighQuality;
         g.TranslateTransform(offsetX,offsetY);g.ScaleTransform(scale,scale);
@@ -154,7 +155,7 @@ public sealed class CatPainter : IDisposable
         g.FillEllipse(_ink,-1,9,4.2f,3);
         if(p.Anger>.05)
         {
-            using var brow=new Pen(Color.FromArgb((int)(255*p.Anger),64,61,52),3.2f){StartCap=LineCap.Round,EndCap=LineCap.Round};
+            using var brow=new Pen(Color.FromArgb((int)(255*p.Anger),_ink.Color),3.2f){StartCap=LineCap.Round,EndCap=LineCap.Round};
             g.DrawLine(brow,-25,-12,-14,-7);g.DrawLine(brow,16,-7,27,-12);
         }
         if(p.SleepBubble>.01)
@@ -181,11 +182,18 @@ public sealed class CatPainter : IDisposable
         g.Restore(saved);
     }
 
-    private static Color OutfitColor(CatPose p)=>ColorTranslator.FromHtml(p.AccessoryColor switch{"Rose"=>"#D794A5","Sky"=>"#8FBBD1","Plum"=>"#A795BE","Honey"=>"#DBB76D",_=>"#95B99B"});
+    private static Color OutfitColor(CatPose p)=>ColorTranslator.FromHtml(Appearance(p).NeckwearColor);
 
     // Neckwear belongs between the body and the head. Drawing it here lets the
     // chin occlude the collar and prevents clothing from becoming facial hair.
     private void DrawNeckAccessory(Graphics g,CatPose p)
+    {
+        var look=Appearance(p);DrawCollar(g,p,look);
+        var accessory=look.Neckwear switch{CatNeckwear.Bandana=>PetAccessory.Bandana,CatNeckwear.BowTie=>PetAccessory.BowTie,_=>PetAccessory.None};
+        if(look.Neckwear==CatNeckwear.Scarf)DrawScarf(g,p,look);
+        else DrawNeckwear(g,p with{Accessory=accessory});
+    }
+    private void DrawNeckwear(Graphics g,CatPose p)
     {
         if(p.Accessory is PetAccessory.None or PetAccessory.Flower)return;
         var saved=g.Save();
@@ -224,9 +232,11 @@ public sealed class CatPainter : IDisposable
     }
     private static void DrawHeadAccessory(Graphics g,CatPose p)
     {
-        if(p.Accessory!=PetAccessory.Flower)return;
+        var look=Appearance(p);
+        if(look.Hat==CatHat.None)return;
+        if(look.Hat!=CatHat.Flower){DrawHat(g,look);return;}
         var saved=g.Save();g.TranslateTransform(-29,-30);g.RotateTransform((float)p.EarLeft);g.TranslateTransform(29,30);
-        using var fill=new SolidBrush(OutfitColor(p));
+        using var fill=new SolidBrush(ColorTranslator.FromHtml(look.HatColor));
         for(int i=0;i<5;i++){double a=i*Math.PI*2/5;g.FillEllipse(fill,-38+(float)Math.Cos(a)*6,-38+(float)Math.Sin(a)*6,9,9);}
         using var gold=new SolidBrush(Color.FromArgb(238,200,119));g.FillEllipse(gold,-35,-35,8,8);
         g.Restore(saved);
@@ -245,6 +255,7 @@ public sealed class CatPainter : IDisposable
 
     public void DrawIcon(Graphics g,int size)
     {
+        ApplyCoat(PetAppearance.Oat);
         var saved=g.Save();g.SmoothingMode=SmoothingMode.AntiAlias;g.ScaleTransform(size/124f,size/124f);
         g.TranslateTransform(-98,-73);DrawHead(g,CatRig.Evaluate(CatAction.Idle,0,0,0) with{HeadYaw=0});g.Restore(saved);
     }
