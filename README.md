@@ -1,12 +1,14 @@
 # Cute Cat
 
+**1.1.2 fixes App guard:** app scanning is independent of notification discovery, custom frames can use verified native close regions, and eligible dialog-based main windows are supported. See [release notes](docs/releases/v1.1.2.md) and [the repair contract](docs/25-app-guard-repair.md).
+
 A free native Windows companion, drawn and animated continuously in C#. No sprite sheets, WebView, game engine or cloud service.
 
-**v1.1.1** — Windows 11 x64.
+**v1.1.2** — Windows 11 x64.
 
 ## Install
 
-Download **CuteCat-1.1.1-Setup.exe** from [GitHub Releases](https://github.com/kaustabhws/cute-cat/releases/tag/v1.1.1). The wizard adds Start menu/desktop shortcuts and registers the app in **Settings → Apps → Installed apps**. Uninstall removes the program and owned certificate trust while preserving your settings and focus history.
+Download **CuteCat-1.1.2-Setup.exe** from [GitHub Releases](https://github.com/kaustabhws/cute-cat/releases/tag/v1.1.2). The wizard adds Start menu/desktop shortcuts and registers the app in **Settings → Apps → Installed apps**. Uninstall removes the program and owned certificate trust while preserving your settings and focus history.
 
 **Signing and readiness:** This release still uses a protected self-signed development identity, not public publisher verification. The app, installer and uninstaller are signed and timestamped. To render above Windows notifications, the wizard asks to trust its certificate and enable UIAccess, which grants broader access to other apps’ controls. A normal GitHub release does not establish production readiness. Read the [access details](docs/16-uiaccess-review.md) and [production-release guide](docs/22-public-release-guide.md) before wider distribution.
 

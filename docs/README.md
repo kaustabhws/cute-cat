@@ -1,6 +1,8 @@
 # Documentation map
 
-Current release: **1.1.1**, approved for GitHub publication by the user on 13 September 2026. It includes the 1.1.0 companion extras and 1.1.1 UI/startup improvements. Read [release notes](releases/v1.1.1.md), [the performance contract](24-ui-responsiveness.md), [companion extras](23-companion-extras.md), and [build status](build-status.md).
+Current release: **1.1.2 App guard repair**, approved for publication on 14 September 2026. It covers independent notification scans, native close hit-testing and dialog-based main windows. Start with [release notes](releases/v1.1.2.md), [the repair contract](25-app-guard-repair.md) and build status.
+
+Previous release: **1.1.1**, published on 13 September 2026. It includes the 1.1.0 companion extras and 1.1.1 UI/startup improvements. Read [its release notes](releases/v1.1.1.md), [the performance contract](24-ui-responsiveness.md), [companion extras](23-companion-extras.md), and [build status](build-status.md).
 
 The installer retains development signing and UIAccess. A normal GitHub release flag is not public-CA signing or production certification; see [the production guide](22-public-release-guide.md).
 

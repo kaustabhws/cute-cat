@@ -51,6 +51,13 @@ jobs:
           $qa = Join-Path $pwd 'artifacts/ci-extras'
           $process = Start-Process './src/CuteCat.App/bin/Release/net10.0-windows10.0.19041.0/CuteCat.exe' -ArgumentList @('--standard-user','--qa',('"'+$qa+'"'),'--extras-checks','--app-fixture',('"'+$fixture+'"')) -WindowStyle Hidden -Wait -PassThru
           exit $process.ExitCode
+      - name: App guard with delayed notification discovery
+        shell: pwsh
+        run: |
+          $fixture = Join-Path $pwd 'tests/CuteCat.ShellProbe/bin/Release/net10.0-windows10.0.19041.0/CuteCat.ShellProbe.exe'
+          $qa = Join-Path $pwd 'artifacts/ci-app-guard'
+          $process = Start-Process './src/CuteCat.App/bin/Release/net10.0-windows10.0.19041.0/CuteCat.exe' -ArgumentList @('--standard-user','--qa',('"'+$qa+'"'),'--app-guard-checks','--guard-events-only','--app-fixture',('"'+$fixture+'"')) -WindowStyle Hidden -Wait -PassThru
+          exit $process.ExitCode
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -64,4 +71,6 @@ jobs:
             artifacts/ci-extras/extras-checks.json
             artifacts/ci-extras/failure.txt
             artifacts/ci-extras/pattern-sheet.png
+            artifacts/ci-app-guard/app-guard-checks.json
+            artifacts/ci-app-guard/failure.txt
           if-no-files-found: ignore

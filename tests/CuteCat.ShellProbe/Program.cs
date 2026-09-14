@@ -25,8 +25,12 @@ internal static class Program
     private static void Main()
     {
         var command=Environment.GetCommandLineArgs();
+        if(command.Length>=3&&command[1]=="--dialog-window")
+        {DialogWindowFixture.Run(command[2],!command.Contains("--modal-look"));return;}
+        if(command.Length>=4&&command[1]=="--app-controls"&&int.TryParse(command[2],out int appId))
+        {AppControlProbe.Run(appId,command[3]);return;}
         if(command.Length>=3&&command[1]=="--app-window")
-        {int option=Array.IndexOf(command,"--menu-owner");int owner=option>=0&&option+1<command.Length&&int.TryParse(command[option+1],out int value)?value:0;AppWindowFixture.Run(command[2],command.Contains("--veto"),owner);return;}
+        {int option=Array.IndexOf(command,"--menu-owner");int owner=option>=0&&option+1<command.Length&&int.TryParse(command[option+1],out int value)?value:0;AppWindowFixture.Run(command[2],command.Contains("--veto"),owner,command.Contains("--custom-caption"),command.Contains("--no-close"));return;}
         if(command.Length>=3&&command[1]=="--layers"){LayerProbe.Run(command[2]);return;}
         if(command.Length>=3&&command[1]=="--uia3"){Uia3Probe.Run(command[2]);return;}
         if(command.Length>=3&&command[1]=="--watch"){PassiveNotificationProbe.Run(command[2]);return;}

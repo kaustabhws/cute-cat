@@ -56,6 +56,10 @@ public sealed partial class CompanionHost : IDisposable
     private readonly Forms.NotifyIcon _tray;
     private Forms.Screen _screen;
     private int _scanBusy;
+    private Task<NotificationTarget?>? _pendingShellScan;
+    private int _pendingShellEpoch;
+    private double _pendingShellStarted;
+    private NotificationTarget? _lastShellObservation;
     private int _menuRequest;
     private bool _locked,_suspended,_fullscreen,_disposed,_appFullscreenOverride,_focusEligibility,_disconnected,_settled;
     private double _workingSince=double.NaN,_settleUntil,_lastAvoid;
@@ -70,6 +74,8 @@ public sealed partial class CompanionHost : IDisposable
     internal long StateWrites=>_writer.Writes;
     private readonly bool _qa;
     internal bool IsTest=>_qa;
+    internal bool ExerciseDesktopEnvironment { get; set; }
+    internal Func<double,int,Task<NotificationTarget?>>? TestNotificationScan { get; set; }
 
     public CompanionHost(string dataDir,bool qa=false)
     {
@@ -341,7 +347,7 @@ public sealed partial class CompanionHost : IDisposable
         if(completed&&!Brain.WantsSleep)Cat.Perform(CatAction.Celebrate,now);
         var scheduled=ProfilePolicy.Resolve(Settings.Profiles,Settings.ActiveProfileId,Settings.AutomaticProfiles,DateTime.Now);
         if(scheduled.Id!=CurrentProfile.Id)Configure();
-        if(!_qa)CheckFullscreen();
+        if(!_qa||ExerciseDesktopEnvironment)CheckFullscreen();
         bool suppressed=IsSuppressed || !Visible;
         if(Cat.Hidden!=suppressed) { CancelPaw();Cat.SetVisible(!suppressed,now);Surface.Show(!suppressed); }
         bool busy=Attempt.Target is not null||Gesture.Pressed||Menu.IsOpen||suppressed;
@@ -350,7 +356,7 @@ public sealed partial class CompanionHost : IDisposable
         if(idle==IdleTransition.Wake){CancelPaw();Cat.Perform(CatAction.Wake,now);}
         else if(!busy&&(idle==IdleTransition.Sleep||Brain.AutoSleeping&&Cat.Action!=CatAction.Sleep))
         {CancelPaw();Cat.Perform(CatAction.Sleep,now);}
-        if(!_qa&&!busy)
+        if((!_qa||ExerciseDesktopEnvironment)&&!busy)
         {
             if(inputIdle<1.5){if(double.IsNaN(_workingSince))_workingSince=now;if(now-_workingSince>3)_settleUntil=now+6;}
             else _workingSince=double.NaN;
@@ -406,7 +412,7 @@ public sealed partial class CompanionHost : IDisposable
             }
             _appFullscreenOverride=app is not null;
             NotificationTarget? found=app?.Target;
-            if(found is null&&Settings.Notifications&&!IsSuppressed)found=await Task.Run(()=>_shell.Find(now,epoch));
+            if(found is null&&Settings.Notifications&&!IsSuppressed)found=PollShell(now,epoch);
             if(_disposed||epoch!=_shell.Epoch)return;
             if(Attempt.Target is { } previous && (found is null || !NotificationAttempt.Matches(previous,found,FrameClock.Now)))
             {
@@ -416,15 +422,38 @@ public sealed partial class CompanionHost : IDisposable
             if(found is null)_ignored=null;
             var ready=_stabilizer.Observe(found,FrameClock.Now);
             if(Attempt.Target is null && ready is not null && ready.Identity!=_ignored)BeginPaw(ready,FrameClock.Now);
-            if(Attempt.Target is null)NotificationStatus=_shell.LastScan=="Unavailable"?"Windows notification controls are unavailable":"Watching for supported Windows banners";
+            if(Attempt.Target is null)NotificationStatus=_pendingShellScan is {IsCompleted:false}&&FrameClock.Now-_pendingShellStarted>2?
+                "Waiting for Windows notification controls":_shell.LastScan=="Unavailable"?"Windows notification controls are unavailable":"Watching for supported Windows banners";
             if(app is null&&Attempt.Target?.AppWindow!=true&&now>_angryUntil&&now>_guardMessageUntil)
                 AppGuardStatus=!EffectiveSettings.AppGuard?"App guard is off for this profile":now<GuardPausedUntil?"App guard paused · resume whenever you're ready":
+                    CurrentProfile.Rules.All(r=>!r.Enabled)?"No apps selected for this profile · add an app to protect against":
+                    _apps.LastScan=="NoForegroundWindow"?"Waiting for Windows to report an active app":
                     _apps.LastScan=="NoCaption"?"This app does not expose a supported close control":"Watching your selected apps";
         }
         finally { Interlocked.Exchange(ref _scanBusy,0); }
         PublishScanStatus();
     }
     private GuardDecision AppDecision(AppCloseCandidate app,double now)=>_guardGate.Evaluate(app.Rule,app.Target.Identity,Settings.AppExceptions,UsedToday(app.Rule.Path),DateTimeOffset.UtcNow,now);
+    private NotificationTarget? PollShell(double now,int epoch)
+    {
+        // A slow shell accessibility provider must never hold the app-guard scan loop.
+        // Keep one shell request in flight; cancellation discards its result, not its task slot.
+        if(_pendingShellScan is {IsCompleted:true} completed)
+        {
+            _lastShellObservation=completed.IsCompletedSuccessfully&&_pendingShellEpoch==epoch?completed.Result:null;
+            if(completed.IsFaulted)_=completed.Exception;
+            _pendingShellScan=null;
+        }
+        if(_pendingShellScan is null)
+        {
+            _pendingShellEpoch=epoch;
+            _pendingShellStarted=now;
+            _pendingShellScan=TestNotificationScan?.Invoke(now,epoch)??Task.Run(()=>_shell.Find(now,epoch));
+        }
+        var observed=_lastShellObservation;
+        if(observed is null||observed.Epoch!=epoch||now<observed.SeenAt||now-observed.SeenAt>8)return null;
+        return observed;
+    }
     private void PublishScanStatus()
     {
         if(_publishedNotificationStatus==NotificationStatus&&_publishedAppStatus==AppGuardStatus)return;

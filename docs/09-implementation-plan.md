@@ -1,5 +1,9 @@
 # Implementation plan
 
+**Current task — publish 1.1.2:** the user approved pushing the source and tested installer on 14 September 2026. Publish the unchanged installer with matching checksum/update metadata, verify Windows CI and downloaded release assets. The earlier local-only directions below describe prior milestones.
+
+**Current task — 1.1.2 App guard repair:** reproduce the reported failure through the actual app-rule UI and real foreground windows; recognize supported custom and dialog-based main windows; stop notification discovery from blocking app rules; preserve save prompts and install the repair locally. See [contract](25-app-guard-repair.md).
+
 **Current task — publish 1.1.1:** the user approved pushing all completed changes and the new installer release. Preserve the tested installer, update release documentation, verify the source/CI and uploaded assets. The earlier publication holds below are historical.
 
 **Current task — 1.1.1:** optimize the app UI and toggles, animate maximize/restore reflow, preserve desktop-cat animation/protection, enable Windows startup by default, and install locally. Do not push or release until the user approves. See [contract](24-ui-responsiveness.md).

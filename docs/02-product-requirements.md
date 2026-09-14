@@ -1,5 +1,7 @@
 # Product requirements
 
+**APP-04 — App guard repair:** a slow notification scan must not block selected-app detection. Verified native HTCLOSE regions may replace empty legacy caption rectangles. Unowned dialog-based main windows with a minimize box can be selected; message/save-style and owned dialogs remain excluded. Exact-path, foreground, epoch and painted-contact checks remain mandatory. See [contract](25-app-guard-repair.md).
+
 **1.1.0 extension:** EXTRA-01–07 in [Companion extras](23-companion-extras.md) define the authorized grace cue, troubleshooting, saved procedural looks, pet reactions, optional break cues, reviewed settings transfer and existing-instance shortcut behavior. Existing paw identity/contact/cancellation and menu requirements still apply.
 
 **1.0.0 publication direction:** the user requested all current changes on GitHub and a normal release numbered 1.0.0, plus production-release guidance. Preserve existing functionality and truthfully disclose development signing, UIAccess scope and uncompleted desktop checks. The stable updater excludes draft/pre-release entries. Browser integration remains deferred; the public-release guide defines the current companion-only production work.

@@ -4,12 +4,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using System.Runtime.InteropServices;
+using System.Windows.Interop;
 
 namespace CuteCat.ShellProbe;
 
 internal static class AppWindowFixture
 {
-    public static void Run(string directory,bool veto,int menuOwner=0)
+    public static void Run(string directory,bool veto,int menuOwner=0,bool customCaption=false,bool disableClose=false)
     {
         Directory.CreateDirectory(directory);
         var app=new Application{ShutdownMode=ShutdownMode.OnMainWindowClose};
@@ -19,6 +20,21 @@ internal static class AppWindowFixture
             Left=area.Right-width-40,Top=area.Top+Math.Min(160,Math.Max(20,area.Height-height-40)),
             Content=new TextBlock{Text="A test-owned window. No user documents are opened.",Margin=new Thickness(25),TextWrapping=TextWrapping.Wrap}};
         int requests=0;bool stopping=false;Window? prompt=null;
+        window.SourceInitialized+=(_,_)=>
+        {
+            var handle=new WindowInteropHelper(window).Handle;
+            if(customCaption)HwndSource.FromHwnd(handle)?.AddHook((IntPtr h,int message,IntPtr wp,IntPtr lp,ref bool handled)=>
+            {
+                if(message==0x33F&&lp!=IntPtr.Zero)
+                {
+                    // Reproduce an AWT/custom frame: the legacy query succeeds but has no button rectangles.
+                    for(int offset=44;offset<140;offset+=4)Marshal.WriteInt32(lp,offset,0);
+                    handled=true;return new IntPtr(1);
+                }
+                return IntPtr.Zero;
+            });
+            if(disableClose)EnableMenuItem(GetSystemMenu(handle,false),0xF060,1);
+        };
         window.Closing+=(_,e)=>
         {
             if(stopping)return;
@@ -37,4 +53,6 @@ internal static class AppWindowFixture
         app.Run(window);
     }
     [DllImport("user32.dll")]private static extern bool AllowSetForegroundWindow(uint process);
+    [DllImport("user32.dll")]private static extern IntPtr GetSystemMenu(IntPtr window,bool revert);
+    [DllImport("user32.dll")]private static extern uint EnableMenuItem(IntPtr menu,uint item,uint flags);
 }

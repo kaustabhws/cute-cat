@@ -22,7 +22,7 @@ internal static class SupportDiagnostics
         practice=host.LastJourney is {Practice:true} journey?(journey.Dismissed?"Dismissed":journey.Cancelled?"Cancelled":"In progress"):"Not the latest action",
         note="Control availability and app-owned tests only. This report does not certify real mouse interaction or every notification layout."
     },new JsonSerializerOptions{WriteIndented=true});
-    private static string Code(string code)=>code is "NoMatchingApp" or "NoCaption" or "SupportedApp" or "NoShellWindow" or "SupportedBanner" or "Unavailable"?code:"No supported control detected";
+    private static string Code(string code)=>code is "NoMatchingApp" or "NoForegroundWindow" or "NoCaption" or "SupportedApp" or "NoShellWindow" or "SupportedBanner" or "Unavailable"?code:"No supported control detected";
     private static string TestCode(string code)=>code is "NotSent" or "Sent" or "UserCanceled" or "TimedOut" or "Elevated"?code:"Windows test unavailable";
     public static string Explanation(CompanionHost host)
     {

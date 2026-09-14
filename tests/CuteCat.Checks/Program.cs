@@ -226,5 +226,6 @@ Check("title bar choice is normalized independently of theme",StateStore.Normali
 Check("custom colours are opaque six-digit RGB only",PetAppearance.IsColor("#abcdef")&&!PetAppearance.IsColor("#abc")&&!PetAppearance.IsColor("#00ffffff")&&!PetAppearance.IsColor("#zzzzzz"));
 await ExtrasChecks.Run(Check,dir);
 await PersistenceChecks.Run(Check);
+CaptionChecks.Run(Check);
 Console.WriteLine($"\n{passed} passed; {failed} failed. Isolated fixtures: {dir}");
 Environment.ExitCode=failed==0?0:1;

@@ -66,7 +66,8 @@ public partial class App : Application
             if(openPending||!e.Args.Contains("--tray") && benchmark is null && shellCheck is null)OpenMain();
             if(qa is not null)
             {
-                if(e.Args.Contains("--responsiveness-checks"))await QualityChecks.Responsiveness(_host,main,Path.GetFullPath(qa));
+                if(e.Args.Contains("--app-guard-checks"))await QualityChecks.AppGuardFlow(_host,main,Path.GetFullPath(qa),Arg("--app-fixture")!,e.Args.Contains("--guard-events-only"));
+                else if(e.Args.Contains("--responsiveness-checks"))await QualityChecks.Responsiveness(_host,main,Path.GetFullPath(qa));
                 else if(e.Args.Contains("--extras-checks"))await QualityChecks.Extras(_host,main,Path.GetFullPath(qa),Arg("--app-fixture")!);
                 else if(e.Args.Contains("--menu-opening-checks"))await QualityChecks.MenuOpening(_host,main,Path.GetFullPath(qa));
                 else if(e.Args.Contains("--menu-checks"))await QualityChecks.Menus(_host,main,Path.GetFullPath(qa),Arg("--app-fixture")!,e.Args.Contains("--menu-events-only"));

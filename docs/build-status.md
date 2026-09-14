@@ -1,5 +1,19 @@
 # Current build status
 
+## 1.1.2 publication approved — 14 September 2026
+
+The user authorized the App guard source changes and a new installer release. Keep the locally installed/tested installer unchanged: 58,879,040 bytes, SHA-256 `0240106ADB920618B811DA449403AF26E69E7B46CFCCF347C186933A8338FB7B`. Publish its matching checksum and updater metadata, run Windows CI, and verify a public download. Earlier local-only statements below are historical. Release notes: [1.1.2](releases/v1.1.2.md).
+
+## 1.1.2 local App guard repair
+
+The user reported that App guard did not close selected apps, including Android Studio. Fixed custom-caption detection through verified native HTCLOSE regions, removed the shared wait that allowed notification discovery to block every app scan, and admitted structurally eligible dialog-based main windows while retaining prompt exclusions. See [repair contract](25-app-guard-repair.md).
+
+Before/after regression: a stalled notification query prevented both normal and custom-frame app closing before the change; afterward both UI-configured flows closed through real foreground windows and painted paw contact. The expanded controlled matrix covers a dialog-based main window, save/refusal behavior, disabled close, a standalone prompt, one pending shell request and stale-epoch cancellation. Read-only probes located the actual Android Studio and Codex native close controls; these are detection results, not live user-app closure claims.
+
+Release build and 226 core checks pass. The expanded controlled App guard suite passes 26 checks. An earlier real-foreground standard/custom suite passed; a later RDP run exposed no foreground window, so the expanded matrix explicitly uses `--guard-events-only`. The first full regression run passed 83 functional checks but missed two cadence thresholds during that desktop session; installed-build checks are recorded in the handoff. No new GitHub publication is included in this local repair.
+
+Installed 1.1.2 verification: **26 App guard**, **85 full native**, **10 menu opening**, **13 responsiveness** and **14 installer** checks passed. Installer size: 58,879,040 bytes; SHA-256 `0240106ADB920618B811DA449403AF26E69E7B46CFCCF347C186933A8338FB7B`. See [current handoff](handoff-2026-09-13-app-guard.md). The existing development-signing identity is unchanged.
+
 ## 1.1.1 publication approved
 
 The user approved the GitHub push and new release after local installation. Publish the unchanged tested 1.1.1 installer identified below, together with its checksum and updater metadata. All completed source, tests and documentation belong in this release; private build artifacts and signing keys remain excluded. Release/CI verification is recorded in the GitHub release and task handoff. The local-only statements in earlier milestones describe their original delivery status.

@@ -8,7 +8,7 @@ using CuteCat.Core;
 namespace CuteCat.App;
 
 public sealed record DesktopApp(string Path,string Name);
-public sealed record AppCloseCandidate(NotificationTarget Target,AppRule Rule,bool CanClose=true,bool Handled=false);
+public sealed record AppCloseCandidate(NotificationTarget Target,AppRule Rule,bool CanClose=true,bool Handled=false,string CaptionSource="None");
 public enum AppCloseResult { Closed, Requested, Cancelled }
 
 /// <summary>Only a user-selected executable's foreground, unowned top-level window.</summary>
@@ -60,6 +60,7 @@ public sealed class DesktopApps
             foreach(var pair in _handled.ToArray())
                 if(!Native.IsWindow(new IntPtr(pair.Value.Window))||!Native.IsWindowVisible(new IntPtr(pair.Value.Window))||IsIconic(new IntPtr(pair.Value.Window)))_handled.TryRemove(pair.Key,out _);
             IntPtr window=_foreground();
+            if(window==IntPtr.Zero){LastScan="NoForegroundWindow";return null;}
             try
             {
                 if(!Eligible(window))return null;
@@ -75,7 +76,7 @@ public sealed class DesktopApps
                 var close=CloseControl(window,(int)pid);
                 if(close is null){LastScan="NoCaption";return new(new(identity,window.ToInt64(),(int)pid,new Area(0,0,1,1),now,epoch,AppWindow:true),rule,false,handled);}
                 LastScan="SupportedApp";
-                return new(new(identity,window.ToInt64(),(int)pid,close.Value.Area,now,epoch,AppWindow:true),rule,true,handled);
+                return new(new(identity,window.ToInt64(),(int)pid,close.Value.Area,now,epoch,AppWindow:true),rule,true,handled,close.Value.Source);
             }
             catch(Exception e)when(PlatformFailure(e)){return null;}
         }
@@ -118,9 +119,25 @@ public sealed class DesktopApps
         Native.GetWindowThreadProcessId(window,out uint pid);
         if(pid==Environment.ProcessId)return false;
         var cls=new StringBuilder(128);Native.GetClassName(window,cls,128);
-        return cls.ToString() is not ("#32770" or "Progman" or "WorkerW" or "Shell_TrayWnd");
+        if(cls.ToString() is "Progman" or "WorkerW" or "Shell_TrayWnd")return false;
+        if(cls.ToString()=="#32770")
+        {
+            // Some desktop utilities use a dialog as their main window. Ordinary message/save
+            // dialogs have no minimize box; owned dialogs were already rejected above.
+            if((GetWindowLongPtr(window,-16).ToInt64()&0x20000)==0)return false;
+            bool otherMain=false;
+            Native.EnumWindows((other,_)=>
+            {
+                Native.GetWindowThreadProcessId(other,out uint otherPid);
+                if(other!=window&&otherPid==pid&&Native.IsWindowVisible(other)&&GetWindow(other,4)==IntPtr.Zero&&
+                    (GetWindowLongPtr(other,-20).ToInt64()&0x80)==0)otherMain=true;
+                return !otherMain;
+            },IntPtr.Zero);
+            if(otherMain)return false;
+        }
+        return true;
     }
-    private static (Area Area,AutomationElement? Control)? CloseControl(IntPtr window,int pid)
+    private static (Area Area,AutomationElement? Control,string Source)? CloseControl(IntPtr window,int pid)
     {
         if(!Native.GetWindowRect(window,out var bounds))return null;
         double dpi=Math.Max(96,Native.GetDpiForWindow(window))/96d;
@@ -128,8 +145,11 @@ public sealed class DesktopApps
         if(SendMessageTimeout(window,0x33F,IntPtr.Zero,ref title,2,80,out _)!=IntPtr.Zero)
         {
             var r=title.Rects[5];var area=new Area(r.Left,r.Top,r.Right-r.Left,r.Bottom-r.Top);
-            if((title.States[5]&(1|0x8000|0x10000))==0&&CaptionGeometry(bounds,area,dpi))return(area,null);
+            if((title.States[5]&(1|0x8000|0x10000))==0&&CaptionGeometry(bounds,area,dpi))return(area,null,"TitleBarInfo");
         }
+        // JetBrains/JBR windows can expose empty TITLEBARINFOEX rectangles and no UIA caption,
+        // while correctly identifying their native close region through WM_NCHITTEST.
+        if(NativeCloseRegion(window,bounds,dpi) is { } native)return(native,null,"NativeHitTest");
         // Fallback is constrained to the window's caption corner, not content buttons.
         var root=AutomationElement.FromHandle(window);
         var buttons=root.FindAll(TreeScope.Descendants,new PropertyCondition(AutomationElement.ControlTypeProperty,ControlType.Button));
@@ -148,9 +168,29 @@ public sealed class DesktopApps
             }
             if(!caption)continue;
             if(b.AutomationId is not ("Close" or "CloseButton" or "PART_CloseButton")&&b.Name!="Close")continue;
-            if(button.TryGetCurrentPattern(InvokePattern.Pattern,out _))return(area,button);
+            if(button.TryGetCurrentPattern(InvokePattern.Pattern,out _))return(area,button,"Accessibility");
         }
         return null;
+    }
+    private static Area? NativeCloseRegion(IntPtr window,Native.Rect bounds,double dpi)
+    {
+        IntPtr menu=GetSystemMenu(window,false);
+        uint state=menu==IntPtr.Zero?uint.MaxValue:GetMenuState(menu,0xF060,0);
+        if(state==uint.MaxValue||(state&3)!=0)return null;
+        Area? hint=null;
+        if(DwmGetWindowAttribute(window,5,out var caption,Marshal.SizeOf<Native.Rect>())==0)
+            hint=new(bounds.Left+caption.Left,bounds.Top+caption.Top,caption.Right-caption.Left,caption.Bottom-caption.Top);
+        var watch=Stopwatch.StartNew();
+        int? Query(V2 point)
+        {
+            if(watch.ElapsedMilliseconds>120)return null;
+            long packed=((long)(ushort)(short)point.Y<<16)|(ushort)(short)point.X;
+            return SendHitTest(window,0x84,IntPtr.Zero,new IntPtr(packed),2|0x20,20,out var result)!=IntPtr.Zero?(int)result.ToInt64():null;
+        }
+        var region=NativeCaptionLocator.Find(new(bounds.Left,bounds.Top,bounds.Right-bounds.Left,bounds.Bottom-bounds.Top),dpi,hint,Query);
+        if(region is null||!CaptionGeometry(bounds,region.Value,dpi)||!Native.GetWindowRect(window,out var current)||
+            current.Left!=bounds.Left||current.Top!=bounds.Top||current.Right!=bounds.Right||current.Bottom!=bounds.Bottom)return null;
+        return region;
     }
     private static bool CaptionGeometry(Native.Rect window,Area close,double dpi)=>close.IsValid&&close.Width>=10&&close.Height>=10&&close.Width<=80*dpi&&close.Height<=64*dpi&&
         close.Left>=window.Right-110*dpi&&close.Right<=window.Right+2&&close.Top>=window.Top-2&&close.Bottom<=window.Top+70*dpi;
@@ -168,6 +208,11 @@ public sealed class DesktopApps
     [DllImport("user32.dll")]private static extern IntPtr GetWindow(IntPtr window,uint command);
     [DllImport("user32.dll")]private static extern bool IsWindowEnabled(IntPtr window);
     [DllImport("user32.dll")]private static extern bool IsIconic(IntPtr window);
+    [DllImport("user32.dll",EntryPoint="GetWindowLongPtrW")]private static extern IntPtr GetWindowLongPtr(IntPtr window,int index);
     [DllImport("user32.dll",EntryPoint="SendMessageTimeoutW")]private static extern IntPtr SendMessageTimeout(IntPtr window,uint message,IntPtr wparam,ref TitleBar data,uint flags,uint timeout,out IntPtr result);
     [DllImport("user32.dll")]private static extern bool PostMessage(IntPtr window,uint message,IntPtr wparam,IntPtr lparam);
+    [DllImport("user32.dll")]private static extern IntPtr GetSystemMenu(IntPtr window,bool revert);
+    [DllImport("user32.dll")]private static extern uint GetMenuState(IntPtr menu,uint item,uint flags);
+    [DllImport("user32.dll",EntryPoint="SendMessageTimeoutW")]private static extern IntPtr SendHitTest(IntPtr window,uint message,IntPtr wp,IntPtr lp,uint flags,uint timeout,out IntPtr result);
+    [DllImport("dwmapi.dll")]private static extern int DwmGetWindowAttribute(IntPtr window,int attribute,out Native.Rect rect,int size);
 }

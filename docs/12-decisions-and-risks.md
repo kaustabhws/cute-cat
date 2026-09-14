@@ -105,3 +105,9 @@ Public brand/name, store distribution ownership, signing provider, updater, fina
 - **D55 — Startup default authorized:** the user explicitly requested startup on. Apply once at first normal 1.1.1 launch; record an additive StartupInitialized marker so later explicit opt-outs persist. Register only the app-owned current-user Run value. QA/custom data and read-only states are excluded. Keep the installer local until publication is approved.
 
 - **D56 — Publish the accepted 1.1.1 build:** the user explicitly authorized pushing the complete 1.1.0/1.1.1 work and a new GitHub release after local testing. Keep the installed installer unchanged; publish its matching SHA-256 and update metadata. Preserve the development-signing/UIAccess disclosure and existing regular-release updater channel.
+
+- **D57 — Verified native caption fallback:** use bounded native HTCLOSE queries when legacy rectangles are empty. The system close command must be available, the measured region must pass fresh checks, and the final close remains a normal request after paw contact. No executable-name allowlist or coordinate-only assumption.
+- **D58 — Independent shell scan slot:** notification discovery cannot hold the app-guard loop. Keep one pending shell task and discard stale-epoch observations. Regression coverage includes both helpers together, the actual Add app UI and real foreground state.
+- **D59 — Dialog-based application windows:** replace the blanket dialog-class exclusion with structural main-window checks: unowned, minimizable and no competing visible main window in the same process. Continue rejecting owned and message/save-style dialogs; verify normal-close refusal separately.
+
+- **D60 — Publish 1.1.2:** the user authorized publishing the App guard source and tested installer on 14 September 2026. Use the unchanged installed artifact and matching checksum/update metadata; retain development-signing and desktop-validation disclosures.

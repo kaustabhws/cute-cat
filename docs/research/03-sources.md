@@ -1,5 +1,7 @@
 # Source register
 
+App guard API check, 13 September 2026: [WM_NCHITTEST](https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-nchittest) defines HTCLOSE (20); [DWM window attributes](https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute) provide caption geometry; [WM_SYSCOMMAND](https://learn.microsoft.com/en-us/windows/win32/menurc/wm-syscommand) defines normal SC_CLOSE requests; [GetGUIThreadInfo](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getguithreadinfo) was consulted for foreground diagnostics. No cached or guessed foreground fallback was introduced.
+
 ## 0.6.0 notification investigation — 12 September 2026
 
 - [Microsoft: invoke a control using UI Automation](https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/invoke-a-control-using-ui-automation): locate a scoped control, obtain InvokePattern, and invoke its action. The sample cautions against traversing the entire desktop subtree; our fallback examines only direct roots filtered to verified shell PIDs.
